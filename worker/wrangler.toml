@@ -1,0 +1,13 @@
+name = "vocal-polygraph-judge"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+TOTAL_DAILY = "200"      # Claude checks per day for everyone combined
+PER_PERSON_DAILY = "30"  # Claude checks per day for one visitor
+
+# Storage for the daily counts.
+[[kv_namespaces]]
+binding = "LIMITS"
+id = "7202444dd7194161bb8b2e56f906141c"

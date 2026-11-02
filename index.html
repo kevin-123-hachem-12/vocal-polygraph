@@ -139,7 +139,7 @@ dialog input[type=password]{font:15px var(--mono);padding:10px;border-radius:6px
 <dialog id="settings">
   <form method="dialog" id="setForm">
     <h2>SETTINGS</h2>
-    <p>Add your Anthropic API key to let Claude judge your wording and voice. It stays in this browser only. Without a key the machine uses its built-in voice analysis.</p>
+    <p>Claude already judges every reading, no key needed. Optional: add your own Anthropic API key to skip the shared daily limit. It stays in this browser only.</p>
     <label for="keyIn">ANTHROPIC API KEY<input type="password" id="keyIn" autocomplete="off" placeholder="sk-ant-..."></label>
     <label class="chk"><input type="checkbox" id="soundIn" checked> Machine sounds</label>
     <label class="chk"><input type="checkbox" id="vibeIn" checked> Vibration (Android)</label>
@@ -333,8 +333,25 @@ const SYSTEM = `You are the judging engine inside "Veritas VP-9", a novelty voic
 Decide LIE or TRUTH like a sharp, theatrical polygraph examiner. Weigh verbal deception cues (over-insisting, hedging, distancing language, filler words, oddly specific or vague detail, implausibility, statements that sound like a dare) together with vocal stress (tremor above ~0.35 semitones, pitch range above ~3 semitones, pause share above ~0.3, slow start above ~1 s). Typical calm speech: tremor 0.15-0.3, range 1.5-2.5, pauses 0.1-0.25.
 Be decisive and varied: never sit on the fence, and do not default to TRUTH. Confidence is 55-98.
 Reason: one punchy sentence of at most 14 words, addressed to the player, citing the cue you used. No hedging about the science.`;
+// Shared helper that holds the owner's key, so visitors need none.
+const JUDGE_URL = "https://vocal-polygraph-judge.kevinhachem23.workers.dev";
+async function helperJudge(text, f) {
+  const ac = new AbortController(), to = setTimeout(() => ac.abort(), 30000);
+  try {
+    const res = await fetch(JUDGE_URL, {
+      method: "POST", signal: ac.signal, headers: { "content-type": "application/json" },
+      body: JSON.stringify({ transcript: text, voice: f })
+    });
+    if (res.status === 429) { lcd("AI LIMIT TODAY"); return null; }
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const out = await res.json();
+    out.by = "claude";
+    return out;
+  } catch (e) { console.warn("Helper failed:", e); lcd(e.name === "AbortError" ? "AI TIMEOUT" : "AI OFFLINE"); return null; }
+  finally { clearTimeout(to); }
+}
 async function aiJudge(text, f) {
-  if (!cfg.key) return null;
+  if (!cfg.key) return JUDGE_URL ? helperJudge(text, f) : null;
   const ac = new AbortController(), to = setTimeout(() => ac.abort(), 30000);
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -378,7 +395,7 @@ let state = "idle", stream, nodes, chunks = [], recog = null, transcript = "", t
 const lcd = t => $("#lcd").textContent = t;
 function setLamps() {
   $("#lRec").classList.toggle("on", state === "rec");
-  $("#lAi").classList.toggle("on", !!cfg.key);
+  $("#lAi").classList.toggle("on", !!(cfg.key || JUDGE_URL));
 }
 function startRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -523,12 +540,12 @@ $("#settings").addEventListener("close", () => {
   if ($("#settings").returnValue !== "save") return;
   cfg.key = $("#keyIn").value.trim(); cfg.sound = $("#soundIn").checked; cfg.vibe = $("#vibeIn").checked;
   store.set("key", cfg.key); store.set("sound", cfg.sound); store.set("vibe", cfg.vibe);
-  setLamps(); lcd(cfg.key ? "AI ONLINE" : "READY");
+  setLamps(); lcd(cfg.key || JUDGE_URL ? "AI ONLINE" : "READY");
 });
 
 addEventListener("resize", sizeStrip);
 sizeStrip(); setLamps();
-if (cfg.key) lcd("READY · AI");
+if (cfg.key || JUDGE_URL) lcd("READY · AI");
 requestAnimationFrame(frame);
 </script>
 </body>
