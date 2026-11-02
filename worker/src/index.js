@@ -6,7 +6,10 @@ const ORIGINS = ["https://kevin-123-hachem-12.github.io", "http://localhost:8080
 const SYSTEM = `You are the judging engine inside "Veritas VP-9", a novelty voice lie-detector game. A player said one statement about themselves into the microphone. You receive the speech-to-text transcript and acoustic measurements of their voice.
 Decide LIE or TRUTH like a sharp, theatrical polygraph examiner. Weigh verbal deception cues (over-insisting, hedging, distancing language, filler words, oddly specific or vague detail, implausibility, statements that sound like a dare) together with vocal stress (tremor above ~0.35 semitones, pitch range above ~3 semitones, pause share above ~0.3, slow start above ~1 s). Typical calm speech: tremor 0.15-0.3, range 1.5-2.5, pauses 0.1-0.25.
 Be decisive and varied: never sit on the fence, and do not default to TRUTH. Confidence is 55-98.
-Reason: one punchy sentence of at most 14 words, addressed to the player, citing the cue you used. No hedging about the science.`;
+Reason: one punchy sentence of at most 14 words, addressed to the player, citing the cue you used. No hedging about the science.
+Write the reason in the language named in replyLanguage. The transcript may be in English, French, Arabic or a mix; judge it in whatever language it is.`;
+
+const LANGS = { en: "English", fr: "French", ar: "Lebanese Arabic dialect, written in Arabic script" };
 
 const SCHEMA = {
   type: "object",
@@ -38,7 +41,7 @@ const freeKey = ip => `free:${today()}:${ip}`;
 const codeKey = code => `code:${code}`;
 
 async function balance(env, ip, code) {
-  const freeLimit = parseInt(env.FREE_DAILY || "3", 10);
+  const freeLimit = parseInt(env.FREE_DAILY || "10", 10);
   const usedFree = parseInt((await env.LIMITS.get(freeKey(ip))) || "0", 10);
   let credits = null;
   if (code) {
@@ -48,7 +51,7 @@ async function balance(env, ip, code) {
   return { freeLeft: Math.max(0, freeLimit - usedFree), usedFree, credits };
 }
 
-async function judge(env, transcript, voice) {
+async function judge(env, transcript, voice, lang) {
   const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
   const msg = await client.messages.create({
     model: "claude-haiku-5-5",
@@ -57,7 +60,11 @@ async function judge(env, transcript, voice) {
     system: SYSTEM,
     messages: [{
       role: "user",
-      content: JSON.stringify({ transcript: transcript || "(speech recognition heard nothing clear)", voice: voice || "no voiced speech measured" })
+      content: JSON.stringify({
+        replyLanguage: LANGS[lang] || LANGS.en,
+        transcript: transcript || "(speech recognition heard nothing clear)",
+        voice: voice || "no voiced speech measured"
+      })
     }]
   });
   if (msg.stop_reason === "refusal") return null;
@@ -98,7 +105,7 @@ export default {
     if (!usePaid && bal.freeLeft <= 0) return json({ error: "limit", freeLeft: 0, credits: bal.credits }, 429, h);
 
     let out;
-    try { out = await judge(env, transcript, voice); }
+    try { out = await judge(env, transcript, voice, input.lang); }
     catch (e) {
       if (e instanceof Anthropic.RateLimitError) return json({ error: "busy" }, 503, h);
       if (e instanceof Anthropic.AuthenticationError) return json({ error: "server key rejected" }, 500, h);
@@ -107,14 +114,13 @@ export default {
     }
     if (!out) return json({ error: "no verdict" }, 502, h);
 
-    // Charge only for a verdict that came back.
-    if (usePaid) {
-      await env.LIMITS.put(codeKey(code), String(bal.credits - 1));
-      out.credits = bal.credits - 1; out.freeLeft = bal.freeLeft;
-    } else {
-      await env.LIMITS.put(freeKey(ip), String(bal.usedFree + 1), { expirationTtl: 60 * 60 * 48 });
-      out.freeLeft = bal.freeLeft - 1; out.credits = bal.credits;
-    }
+    // Charge only for a verdict that came back. If storage is full for the day, the verdict still goes out.
+    try {
+      if (usePaid) await env.LIMITS.put(codeKey(code), String(bal.credits - 1));
+      else await env.LIMITS.put(freeKey(ip), String(bal.usedFree + 1), { expirationTtl: 60 * 60 * 48 });
+    } catch (e) { console.error("count not saved", e); }
+    if (usePaid) { out.credits = bal.credits - 1; out.freeLeft = bal.freeLeft; }
+    else { out.freeLeft = bal.freeLeft - 1; out.credits = bal.credits; }
     return json(out, 200, h);
   }
 };

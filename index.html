@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0d0c0b">
-<meta name="description" content="Veritas VP-9: say something about yourself and the machine stamps LIE or TRUTH. A voice lie detector game.">
+<meta name="description" content="Veritas VP-9: say something about yourself and the machine stamps LIE or TRUTH. A voice lie detector game in English, Arabic and French.">
 <meta property="og:title" content="Veritas VP-9 · Can you fool the machine?">
 <meta property="og:description" content="Say something about yourself. The machine stamps LIE or TRUTH.">
 <meta property="og:image" content="https://kevin-123-hachem-12.github.io/vocal-polygraph/icon-512.png">
@@ -15,7 +15,7 @@
 <title>Vocal Polygraph</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@700;900&family=Barlow+Condensed:wght@500;600;700&family=Share+Tech+Mono&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@700;900&family=Barlow+Condensed:wght@500;600;700&family=Share+Tech+Mono&family=Lalezar&family=Cairo:wght@500;600;700&display=swap">
 <style>
 /* One machine, centered: brass nameplate, analog gauge, amber readout, chart paper with stamp, big red button. Single dark look by design. */
 :root{
@@ -26,8 +26,12 @@
   --stencil:"Big Shoulders Stencil Display",Impact,sans-serif;
   --cond:"Barlow Condensed","Arial Narrow",sans-serif;
   --mono:"Share Tech Mono",ui-monospace,Consolas,monospace;
+  --stamp:var(--stencil);
   color-scheme:dark;
 }
+/* Arabic: same machine, Arabic display and body faces. The plate and readout keep their Latin type. */
+html[lang="ar"]{--cond:"Cairo",Tahoma,sans-serif;--stamp:"Lalezar","Cairo",sans-serif}
+html[lang="ar"] .said{font-size:16px;line-height:1.6}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%}
 body{background:radial-gradient(ellipse at 50% 0%,#24201b 0%,var(--room) 70%);background-color:var(--room);color:var(--label);font:16px/1.4 var(--cond);
@@ -41,21 +45,23 @@ body{background:radial-gradient(ellipse at 50% 0%,#24201b 0%,var(--room) 70%);ba
   box-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 -2px 0 rgba(0,0,0,.6) inset,0 30px 60px rgba(0,0,0,.6),0 0 0 1px #000}
 .machine::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.35;
   background:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px)}
+.gauge,.lcd,.paper,.plate{direction:ltr}
 .screw{position:absolute;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#9a9a9a,#3a3a3a);box-shadow:0 1px 1px #000}
 .screw::after{content:"";position:absolute;left:1px;right:1px;top:4px;height:2px;background:#222;transform:rotate(35deg)}
 .s1{top:9px;left:9px}.s2{top:9px;right:9px}.s3{bottom:9px;left:9px}.s4{bottom:9px;right:9px}
 .plate{justify-self:center;display:flex;align-items:center;gap:10px;padding:5px 16px;border-radius:4px;
   background:linear-gradient(180deg,#e2c27e,var(--brass) 45%,var(--brass-lo));color:#2a1e08;box-shadow:0 2px 4px rgba(0,0,0,.6)}
 .plate b{font:900 22px/1 var(--stencil);letter-spacing:.12em}
-.plate small{font:600 11px var(--cond);letter-spacing:.2em}
-.gear{position:absolute;top:14px;right:24px;width:34px;height:34px;border-radius:50%;border:1px solid #000;cursor:pointer;
-  background:radial-gradient(circle at 40% 35%,#55595d,#1d1f21);color:var(--label);display:grid;place-items:center;z-index:3}
+.plate small{font:600 11px "Barlow Condensed",sans-serif;letter-spacing:.2em}
+.knob{position:absolute;top:14px;width:34px;height:34px;border-radius:50%;border:1px solid #000;cursor:pointer;z-index:3;padding:0;
+  background:radial-gradient(circle at 40% 35%,#55595d,#1d1f21);color:var(--label);display:grid;place-items:center;font:700 13px "Barlow Condensed","Cairo",sans-serif;letter-spacing:.04em}
+.gear{right:24px}.langk{left:24px}
 .gear svg{width:18px;height:18px}
 .gauge{border-radius:14px;padding:10px 10px 0;background:var(--bezel);box-shadow:0 2px 0 rgba(255,255,255,.08),0 0 0 3px #000 inset}
 .gauge svg{display:block;width:100%;height:auto}
 .lcd{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 12px;border-radius:6px;background:var(--lcd);
   box-shadow:0 0 0 2px #000,0 2px 6px rgba(0,0,0,.8) inset;font:20px/1 var(--mono);color:var(--amber);text-shadow:0 0 8px rgba(255,179,71,.6);letter-spacing:.06em}
-.lamps{display:flex;gap:10px;font:600 10px var(--cond);letter-spacing:.14em;color:var(--label);text-shadow:none}
+.lamps{display:flex;gap:10px;font:600 10px "Barlow Condensed",sans-serif;letter-spacing:.14em;color:var(--label);text-shadow:none}
 .lamp{display:flex;align-items:center;gap:5px}
 .lamp i{width:9px;height:9px;border-radius:50%;background:#2a2a2a;box-shadow:0 0 0 1px #000}
 .lamp.on.g i{background:var(--green-hi);box-shadow:0 0 8px var(--green-hi)}
@@ -65,9 +71,11 @@ body{background:radial-gradient(ellipse at 50% 0%,#24201b 0%,var(--room) 70%);ba
 .paper{position:relative;border-radius:6px;overflow:hidden;box-shadow:0 0 0 3px #000,0 6px 14px rgba(0,0,0,.6) inset}
 .paper canvas{display:block;width:100%;height:150px}
 .paper::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:0 8px 16px -8px rgba(0,0,0,.45) inset,0 -8px 16px -8px rgba(0,0,0,.45) inset}
-.stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);display:grid;justify-items:center;
+.stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);display:grid;justify-items:center;white-space:nowrap;
   padding:6px 18px 8px;border:5px solid currentColor;border-radius:10px;color:var(--red);opacity:0;pointer-events:none;mix-blend-mode:multiply}
-.stamp b{font:900 64px/0.9 var(--stencil);letter-spacing:.06em}
+.stamp b{font:900 64px/0.9 var(--stamp);letter-spacing:.06em}
+html[lang="ar"] .stamp b{font-weight:400;letter-spacing:0;line-height:1.1}
+.stamp.long b{font-size:44px}
 .stamp small{font:700 14px var(--cond);letter-spacing:.18em}
 .stamp.truth{color:var(--green)}
 .stamp.show{animation:stamp .38s cubic-bezier(.2,1.6,.4,1) forwards}
@@ -84,45 +92,52 @@ body{background:radial-gradient(ellipse at 50% 0%,#24201b 0%,var(--room) 70%);ba
 .rec:active span{transform:translateY(3px);box-shadow:0 1px 0 #4a0905,0 3px 6px rgba(0,0,0,.6)}
 .rec.live span{animation:glow 1s ease-in-out infinite;transform:translateY(3px);box-shadow:0 1px 0 #4a0905,0 0 28px 6px rgba(255,70,50,.55)}
 .rec:disabled{cursor:wait}
-.rec:focus-visible,.chip:focus-visible,.gear:focus-visible{outline:3px solid var(--amber);outline-offset:4px}
+.rec:focus-visible,.chip:focus-visible,.knob:focus-visible{outline:3px solid var(--amber);outline-offset:4px}
 @keyframes glow{50%{box-shadow:0 1px 0 #4a0905,0 0 44px 14px rgba(255,70,50,.75)}}
-.chip{border:1px solid #000;border-radius:999px;padding:7px 12px;cursor:pointer;font:700 12px var(--cond);letter-spacing:.14em;color:#e8dfcc;
+.chip{border:1px solid #000;border-radius:999px;padding:7px 12px;cursor:pointer;font:700 12px var(--cond);letter-spacing:.1em;color:#e8dfcc;max-width:130px;
   background:linear-gradient(180deg,#45494d,#222426);box-shadow:0 2px 4px rgba(0,0,0,.6);text-align:center;line-height:1.15}
+html[lang="ar"] .chip{letter-spacing:0;font-size:12px;line-height:1.4}
 .chip.brass{background:linear-gradient(180deg,#e2c27e,var(--brass) 45%,var(--brass-lo));color:#2a1e08}
 .hint{text-align:center;font:600 12px var(--cond);letter-spacing:.22em;color:var(--label);margin-top:-6px}
+html[lang="ar"] .hint{letter-spacing:0;font-size:14px}
 .fine{text-align:center;font:500 11px var(--cond);letter-spacing:.08em;color:#7d776c;margin:0}
+html[lang="ar"] .fine{letter-spacing:0;font-size:12px}
 .shake{animation:shake .45s cubic-bezier(.36,.07,.19,.97)}
 .rumble{animation:rumble .12s linear infinite}
 @keyframes shake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(4px,-2px)}30%,50%,70%{transform:translate(-7px,2px)}40%,60%{transform:translate(7px,-1px)}}
 @keyframes rumble{0%{transform:translate(0,0)}25%{transform:translate(.6px,-.5px)}50%{transform:translate(-.6px,.4px)}75%{transform:translate(.4px,.6px)}}
-dialog{border:0;border-radius:16px;padding:0;background:#1d1f21;color:#e8dfcc;width:min(92vw,420px);box-shadow:0 30px 80px #000}
+dialog{border:0;border-radius:16px;padding:0;background:#1d1f21;color:#e8dfcc;width:min(92vw,420px);box-shadow:0 30px 80px #000;font-family:var(--cond)}
 dialog::backdrop{background:rgba(0,0,0,.75)}
 dialog form{display:grid;gap:12px;padding:20px}
-dialog h2{margin:0;font:900 28px/1 var(--stencil);letter-spacing:.08em;color:var(--brass)}
+dialog h2{margin:0;font:900 28px/1.1 var(--stamp);letter-spacing:.08em;color:var(--brass)}
+html[lang="ar"] dialog h2{font-weight:400;letter-spacing:0}
 dialog p{margin:0;font-size:15px;color:var(--label)}
 dialog label{display:grid;gap:4px;font:600 12px var(--cond);letter-spacing:.14em}
-dialog input[type=text]{font:17px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:10px;border-radius:6px;border:1px solid #444;background:#0f1011;color:#fff;width:100%}
+dialog input[type=text]{font:17px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:10px;border-radius:6px;border:1px solid #444;background:#0f1011;color:#fff;width:100%;direction:ltr}
+dialog select{font:16px var(--cond);padding:8px;border-radius:6px;border:1px solid #444;background:#0f1011;color:#fff}
 .chk{display:flex!important;gap:8px;align-items:center;font-size:15px!important;letter-spacing:.04em!important}
 .btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .btn{font:700 15px var(--cond);letter-spacing:.1em;padding:10px 16px;border-radius:6px;border:1px solid #555;background:#2a2c2e;color:#eee;cursor:pointer;text-decoration:none;display:inline-block;text-align:center}
 .btn.go{background:var(--brass);border-color:var(--brass);color:#22180a}
 .btn.wide{width:100%;font-size:18px;padding:12px}
 .offer{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 12px;padding:14px;border-radius:10px;background:#111213;box-shadow:0 0 0 1px #3a3020}
-.offer b{font:900 22px/1 var(--stencil);letter-spacing:.06em;color:#f1e8d2}
-.offer .price{font:900 34px/1 var(--stencil);color:var(--brass)}
-.offer ul{grid-column:1/-1;margin:0;padding-left:18px;font-size:15px;color:var(--label)}
+.offer b{font:900 22px/1.1 var(--stamp);letter-spacing:.06em;color:#f1e8d2}
+html[lang="ar"] .offer b{font-weight:400;letter-spacing:0}
+.offer .price{font:900 34px/1 var(--stencil);color:var(--brass);direction:ltr}
+.offer ul{grid-column:1/-1;margin:0;padding-inline-start:18px;font-size:15px;color:var(--label)}
 .tiny{font-size:12px!important;color:#857e70!important}
-.msg{min-height:1.2em;font:14px var(--mono);color:var(--amber)}
-@media (max-height:720px){.paper canvas{height:110px}.rec{width:96px;height:96px}.stamp b{font-size:52px}}
+.msg{min-height:1.2em;font:14px var(--cond);color:var(--amber)}
+@media (max-height:720px){.paper canvas{height:110px}.rec{width:96px;height:96px}.stamp b{font-size:52px}.stamp.long b{font-size:38px}}
 @media (prefers-reduced-motion:reduce){.shake,.rumble,.rec.live span,.lamp.on.r i{animation:none}}
 </style>
 </head>
 <body>
-<div class="inapp" id="inapp" hidden><b>Open in your browser to use the mic</b>Tap ••• at the top, then “Open in external browser”.</div>
+<div class="inapp" id="inapp" hidden><b id="inappT"></b><span id="inappB"></span></div>
 <main class="machine" id="machine">
   <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
   <div class="plate"><b>VERITAS</b><small>VOICE POLYGRAPH · VP-9</small></div>
-  <button class="gear" id="gearBtn" aria-label="Settings"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7 7 0 0 0-1.7-1L15 3h-4l-.4 2.7a7 7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7 7 0 0 0 1.7 1L11 21h4l.4-2.7a7 7 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
+  <button class="knob langk" id="langBtn" aria-label="Language">EN</button>
+  <button class="knob gear" id="gearBtn" aria-label="Settings"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7 7 0 0 0-1.7-1L15 3h-4l-.4 2.7a7 7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7 7 0 0 0 1.7 1L11 21h4l.4-2.7a7 7 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
 
   <div class="gauge">
     <svg viewBox="0 0 300 172" aria-hidden="true">
@@ -133,9 +148,9 @@ dialog input[type=text]{font:17px var(--mono);letter-spacing:.08em;text-transfor
       <path d="M8 168 A142 142 0 0 1 292 168 Z" fill="url(#face)"/>
       <g id="zones" fill="none" stroke-width="12"></g>
       <g id="ticks" stroke="#1b1a18"></g>
-      <text x="40" y="150" fill="#2f7d3e" style="font:900 20px var(--stencil);letter-spacing:.08em">TRUTH</text>
-      <text x="260" y="150" text-anchor="end" fill="#c0261c" style="font:900 20px var(--stencil);letter-spacing:.08em">LIE</text>
-      <text x="150" y="122" text-anchor="middle" fill="#6b6150" style="font:600 10px var(--cond);letter-spacing:.3em">DECEPTION INDEX</text>
+      <text id="gTruth" x="40" y="150" fill="#2f7d3e" style="font:900 20px var(--stamp);letter-spacing:.08em">TRUTH</text>
+      <text id="gLie" x="260" y="150" text-anchor="end" fill="#c0261c" style="font:900 20px var(--stamp);letter-spacing:.08em">LIE</text>
+      <text x="150" y="122" text-anchor="middle" fill="#6b6150" style="font:600 10px 'Barlow Condensed',sans-serif;letter-spacing:.3em">DECEPTION INDEX</text>
       <g id="needle"><path d="M148.4 160 L150 32 L151.6 160 Z" fill="#b3261e"/><path d="M147 160 h6 v12 h-6z" fill="#1b1a18"/></g>
       <circle cx="150" cy="160" r="11" fill="#1b1a18"/><circle cx="150" cy="160" r="4" fill="#c9a45c"/>
       <path d="M8 168 A142 142 0 0 1 292 168 Z" fill="url(#glass)"/>
@@ -147,44 +162,47 @@ dialog input[type=text]{font:17px var(--mono);letter-spacing:.08em;text-transfor
   </div>
 
   <div class="paper"><canvas id="strip"></canvas>
-    <div class="stamp" id="stamp"><b id="stampWord">LIE</b><small id="stampPct">87% CERTAIN</small></div>
+    <div class="stamp" id="stamp"><b id="stampWord">LIE</b><small id="stampPct"></small></div>
   </div>
 
-  <p class="said" id="said">Press the red button and say something about yourself.<em>“I've never eaten food off the floor.”</em></p>
+  <p class="said" id="said"></p>
 
   <div class="deck">
-    <div class="side"><button class="chip brass" id="creditsBtn">AI VERDICTS<br><span id="credits">3 FREE TODAY</span></button></div>
-    <button class="rec" id="recBtn" aria-label="Start recording"><span>REC</span></button>
-    <div class="side"><button class="chip" id="shareBtn" hidden>SHARE<br>VERDICT</button></div>
+    <div class="side"><button class="chip brass" id="creditsBtn"><span id="aiLabel"></span><br><span id="credits"></span></button></div>
+    <button class="rec" id="recBtn" aria-label="Record"><span>REC</span></button>
+    <div class="side"><button class="chip" id="shareBtn" hidden></button></div>
   </div>
-  <div class="hint" id="hint">PRESS TO RECORD</div>
-  <p class="fine">For entertainment. No machine can truly read a lie.</p>
+  <div class="hint" id="hint"></div>
+  <p class="fine" id="fine"></p>
 </main>
 
 <dialog id="shop">
-  <form method="dialog" id="shopForm">
-    <h2>GET CLAUDE VERDICTS</h2>
-    <p>Every reading gets a verdict from the machine. Claude, Anthropic's AI, also reads your words and voice for a sharper call.</p>
+  <form method="dialog">
+    <h2 id="shopTitle"></h2>
+    <p id="shopIntro"></p>
     <div class="offer">
-      <b>INTERROGATION PACK</b><span class="price">$2.99</span>
-      <ul><li>100 Claude verdicts</li><li>Never expire, use them at any pace</li><li>Plus 3 free Claude verdicts every day</li></ul>
+      <b id="packName"></b><span class="price">$2.99</span>
+      <ul id="perks"></ul>
     </div>
-    <a class="btn go wide" id="buyBtn" target="_blank" rel="noopener">BUY THE PACK</a>
+    <a class="btn go wide" id="buyBtn" target="_blank" rel="noopener"></a>
     <p class="tiny" id="buyNote"></p>
-    <label for="codeIn">HAVE A CODE?<input type="text" id="codeIn" autocomplete="off" spellcheck="false" placeholder="VP9-XXXX-XXXX" maxlength="13"></label>
+    <label for="codeIn"><span id="haveCode"></span><input type="text" id="codeIn" autocomplete="off" spellcheck="false" placeholder="VP9-XXXX-XXXX" maxlength="13"></label>
     <div class="msg" id="codeMsg" aria-live="polite"></div>
-    <div class="btns"><button class="btn" value="close">Close</button><button class="btn go" id="redeemBtn" type="button">Redeem code</button></div>
-    <p class="tiny">For entertainment only. Verdicts are a game, not real lie detection.</p>
+    <div class="btns"><button class="btn" value="close" id="closeBtn"></button><button class="btn go" id="redeemBtn" type="button"></button></div>
+    <p class="tiny" id="shopFine"></p>
   </form>
 </dialog>
 
 <dialog id="settings">
   <form method="dialog">
-    <h2>SETTINGS</h2>
-    <label class="chk"><input type="checkbox" id="soundIn" checked> Machine sounds</label>
-    <label class="chk"><input type="checkbox" id="vibeIn" checked> Vibration (Android)</label>
+    <h2 id="setTitle"></h2>
+    <label for="langIn"><span id="langLabel"></span>
+      <select id="langIn"><option value="en">English</option><option value="ar">العربية</option><option value="fr">Français</option></select>
+    </label>
+    <label class="chk"><input type="checkbox" id="soundIn" checked> <span id="soundLabel"></span></label>
+    <label class="chk"><input type="checkbox" id="vibeIn" checked> <span id="vibeLabel"></span></label>
     <p id="codeLine"></p>
-    <div class="btns"><button class="btn" id="forgetBtn" type="button" hidden>Remove code</button><button class="btn go" value="save">Done</button></div>
+    <div class="btns"><button class="btn" id="forgetBtn" type="button" hidden></button><button class="btn go" value="save" id="doneBtn"></button></div>
   </form>
 </dialog>
 
@@ -194,13 +212,127 @@ const JUDGE_URL = "https://vocal-polygraph-judge.kevinhachem23.workers.dev";
 const APP_URL = "kevin-123-hachem-12.github.io/vocal-polygraph";
 const INSTAGRAM = "veritasvp9";
 const BUY_URL = ""; // hosted checkout link, once a payment provider is set up
+const FREE = 10;     // must match FREE_DAILY in worker/wrangler.toml
+
+/* ---------------- words in three languages ---------------- */
+const T = {
+  en: {
+    intro: "Press the red button and say something about yourself.", example: "“I've never eaten food off the floor.”",
+    listening: "Listening…", hintRec: "PRESS TO RECORD", hintStop: "PRESS TO STOP", hintBusy: "ANALYZING", hintAgain: "PRESS TO RECORD AGAIN",
+    aiLabel: "AI VERDICTS", free: n => `${n} FREE TODAY`, left: n => `${n} LEFT`, more: "GET MORE", share: "SHARE<br>VERDICT",
+    fine: "For entertainment. No machine can truly read a lie.",
+    inappT: "Open in your browser to use the mic", inappB: "Tap ••• at the top, then “Open in external browser”.",
+    noMic: "This browser can't reach a microphone. Try Chrome, Edge or Safari.",
+    micOff: "Microphone access is off.", micHelp: "Allow the mic in your browser's address bar, then press again.",
+    heardNothing: "The machine heard nothing.", heardHelp: "Speak up, closer to the mic, for at least two seconds.",
+    mumble: "(Couldn't make out the words, judging the voice.)",
+    byClaude: "judged by Claude", byMachine: "machine verdict", limit: "Free Claude verdicts used up today. Get more →",
+    lie: "LIE", truth: "TRUTH", certain: n => `${n}% CERTAIN`,
+    shopTitle: "GET CLAUDE VERDICTS", shopIntro: "Every reading gets a verdict from the machine. Claude, Anthropic's AI, also reads your words and voice for a sharper call.",
+    pack: "INTERROGATION PACK", perks: ["100 extra Claude verdicts", "Never expire, use them at any pace", `On top of ${FREE} free Claude verdicts every day`],
+    buy: "BUY THE PACK", buyIg: "BUY ON INSTAGRAM", buyNoteUrl: "After paying you'll get a code. Enter it below.", buyNoteIg: h => `Message @${h} to buy. You'll get a code to enter below.`,
+    haveCode: "HAVE A CODE?", close: "Close", redeem: "Redeem code", shopFine: "For entertainment only. Verdicts are a game, not real lie detection.",
+    codeFormat: "Codes look like VP9-ABCD-1234.", checking: "Checking…", notFound: "That code wasn't found. Check it and try again.",
+    unlocked: n => `Unlocked. ${n} Claude verdicts ready.`, offline: "No connection. Try again in a moment.",
+    settings: "SETTINGS", language: "LANGUAGE", sound: "Machine sounds", vibe: "Vibration (Android)",
+    codeOn: (c, n) => `Pack code: ${c} (${n} verdicts left)`, noCode: "No pack code on this device.", removeCode: "Remove code", removed: "Code removed from this device.", done: "Done",
+    cardTop: "THE VOICE POLYGRAPH HAS SPOKEN", cardCta: "CAN YOU FOOL THE MACHINE?", cardFine: "For entertainment only", cardMumble: "(the words were a mumble)",
+    shareText: v => `The machine says ${v}. Try it:`,
+    cues: { insist: "over-insisting", certain: "too much certainty", hedge: "hedging", filler: "filler words", denial: "a flat denial", shaky: "a shaky pitch", jumpy: "a jumpy voice", pauses: "long pauses", slow: "a slow start" },
+    lie2: (a, b) => `Gave it away with ${a} and ${b}.`, lie1: a => `Gave it away with ${a}.`, lie0: "Something in that voice didn't sit right.",
+    truth1: a => `Some ${a}, but the story holds up.`, truth0: "Steady voice, clean story."
+  },
+  ar: {
+    intro: "اكبس الزر الأحمر وقول شي عن حالك.", example: "«عمري ما أكلت شي وقع عالأرض.»",
+    listening: "عم يسمع…", hintRec: "اكبس لتسجّل", hintStop: "اكبس لتوقّف", hintBusy: "عم يحلّل", hintAgain: "اكبس لتسجّل مرة تانية",
+    aiLabel: "أحكام الذكاء", free: n => `${n} ببلاش اليوم`, left: n => `باقي ${n}`, more: "زيد", share: "شارك<br>الحكم",
+    fine: "للتسلية بس. ما في آلة بتكشف الكذب عن جد.",
+    inappT: "افتح بالمتصفح ليشتغل المايك", inappB: "اكبس ••• فوق، وبعدين «فتح في المتصفح».",
+    noMic: "هالمتصفح ما بيقدر يوصل للمايك. جرّب Chrome أو Safari.",
+    micOff: "المايك مسكّر.", micHelp: "اسمح بالمايك من شريط العنوان، وبعدين اكبس مرة تانية.",
+    heardNothing: "الآلة ما سمعت شي.", heardHelp: "احكي أعلى وقرّب عالمايك، أقلّ شي ثانيتين.",
+    mumble: "(ما انفهم الكلام، عم نحكم عالصوت.)",
+    byClaude: "حكم Claude", byMachine: "حكم الآلة", limit: "خلصوا أحكام Claude المجانية لليوم. زيد ←",
+    lie: "كذب", truth: "صدق", certain: n => `متأكد ${n}٪`,
+    shopTitle: "أحكام Claude", shopIntro: "كل تسجيل بياخد حكم من الآلة. وClaude، الذكاء الاصطناعي تبع Anthropic، بيقرا كلامك وصوتك ليعطي حكم أدق.",
+    pack: "باقة التحقيق", perks: ["١٠٠ حكم إضافي من Claude", "ما بتنتهي صلاحيتها", `فوق الـ${FREE} أحكام المجانية كل يوم`],
+    buy: "اشتري الباقة", buyIg: "اشتري عبر إنستغرام", buyNoteUrl: "بعد الدفع بيوصلك كود، حطّه تحت.", buyNoteIg: h => `راسل @${h} لتشتري. بيوصلك كود بتحطّه تحت.`,
+    haveCode: "معك كود؟", close: "سكّر", redeem: "فعّل الكود", shopFine: "للتسلية بس. الأحكام لعبة، مش كشف كذب حقيقي.",
+    codeFormat: "الكود بيشبه VP9-ABCD-1234.", checking: "عم نتأكد…", notFound: "ما لقينا هالكود. تأكد منه وجرّب مرة تانية.",
+    unlocked: n => `تفعّل! ${n} حكم من Claude جاهزين.`, offline: "ما في اتصال. جرّب بعد شوي.",
+    settings: "الإعدادات", language: "اللغة", sound: "أصوات الآلة", vibe: "الهزّاز (أندرويد)",
+    codeOn: (c, n) => `كود الباقة: ${c} (باقي ${n})`, noCode: "ما في كود على هالجهاز.", removeCode: "امسح الكود", removed: "انمسح الكود من هالجهاز.", done: "تمام",
+    cardTop: "جهاز كشف الكذب حكم", cardCta: "فيك تضحك عالآلة؟", cardFine: "للتسلية بس", cardMumble: "(الكلام ما انفهم)",
+    shareText: v => `الآلة بتقول ${v}. جرّبها:`,
+    cues: { insist: "كتر الحلفان", certain: "ثقة زيادة", hedge: "التردد", filler: "كلمات الحشو", denial: "الإنكار القاطع", shaky: "رجفة الصوت", jumpy: "تقلّب الصوت", pauses: "السكتات الطويلة", slow: "البداية البطيئة" },
+    lie2: (a, b) => `فضحك ${a} و${b}.`, lie1: a => `فضحك ${a}.`, lie0: "في شي بصوتك مش مزبوط.",
+    truth1: a => `رغم ${a}، القصة ماشية.`, truth0: "صوت ثابت وقصة نظيفة."
+  },
+  fr: {
+    intro: "Appuie sur le bouton rouge et dis quelque chose sur toi.", example: "« Je n'ai jamais mangé un truc tombé par terre. »",
+    listening: "J'écoute…", hintRec: "APPUIE POUR ENREGISTRER", hintStop: "APPUIE POUR ARRÊTER", hintBusy: "ANALYSE", hintAgain: "APPUIE POUR RECOMMENCER",
+    aiLabel: "VERDICTS IA", free: n => `${n} GRATUITS AUJ.`, left: n => `${n} RESTANTS`, more: "EN AVOIR PLUS", share: "PARTAGER<br>LE VERDICT",
+    fine: "Pour s'amuser. Aucune machine ne détecte vraiment le mensonge.",
+    inappT: "Ouvre dans ton navigateur pour le micro", inappB: "Touche ••• en haut, puis « Ouvrir dans le navigateur ».",
+    noMic: "Ce navigateur n'a pas accès au micro. Essaie Chrome, Edge ou Safari.",
+    micOff: "Le micro est bloqué.", micHelp: "Autorise le micro dans la barre d'adresse, puis réessaie.",
+    heardNothing: "La machine n'a rien entendu.", heardHelp: "Parle plus fort, plus près du micro, au moins deux secondes.",
+    mumble: "(Mots incompréhensibles, verdict sur la voix.)",
+    byClaude: "jugé par Claude", byMachine: "verdict de la machine", limit: "Verdicts Claude gratuits épuisés pour aujourd'hui. En avoir plus →",
+    lie: "MENSONGE", truth: "VÉRITÉ", certain: n => `SÛR À ${n} %`,
+    shopTitle: "VERDICTS CLAUDE", shopIntro: "Chaque enregistrement reçoit un verdict de la machine. Claude, l'IA d'Anthropic, lit aussi tes mots et ta voix pour un verdict plus fin.",
+    pack: "PACK INTERROGATOIRE", perks: ["100 verdicts Claude en plus", "N'expirent jamais", `En plus des ${FREE} verdicts Claude gratuits par jour`],
+    buy: "ACHETER LE PACK", buyIg: "ACHETER SUR INSTAGRAM", buyNoteUrl: "Après paiement, tu reçois un code à saisir ci-dessous.", buyNoteIg: h => `Écris à @${h} pour acheter. Tu recevras un code à saisir ci-dessous.`,
+    haveCode: "TU AS UN CODE ?", close: "Fermer", redeem: "Activer", shopFine: "Pour s'amuser uniquement. Les verdicts sont un jeu, pas une vraie détection.",
+    codeFormat: "Les codes ressemblent à VP9-ABCD-1234.", checking: "Vérification…", notFound: "Code introuvable. Vérifie-le et réessaie.",
+    unlocked: n => `Activé. ${n} verdicts Claude disponibles.`, offline: "Pas de connexion. Réessaie dans un instant.",
+    settings: "RÉGLAGES", language: "LANGUE", sound: "Sons de la machine", vibe: "Vibration (Android)",
+    codeOn: (c, n) => `Code : ${c} (${n} verdicts restants)`, noCode: "Aucun code sur cet appareil.", removeCode: "Retirer le code", removed: "Code retiré de cet appareil.", done: "OK",
+    cardTop: "LE POLYGRAPHE A PARLÉ", cardCta: "PEUX-TU BERNER LA MACHINE ?", cardFine: "Pour s'amuser uniquement", cardMumble: "(paroles incompréhensibles)",
+    shareText: v => `La machine dit ${v}. Essaie :`,
+    cues: { insist: "trop d'insistance", certain: "trop de certitude", hedge: "des hésitations", filler: "des « euh »", denial: "un démenti sec", shaky: "une voix tremblante", jumpy: "une voix instable", pauses: "de longues pauses", slow: "un départ lent" },
+    lie2: (a, b) => `Trahi par ${a} et ${b}.`, lie1: a => `Trahi par ${a}.`, lie0: "Quelque chose sonne faux dans cette voix.",
+    truth1: a => `Malgré ${a}, l'histoire tient la route.`, truth0: "Voix posée, histoire nette."
+  }
+};
+const SPEECH = { en: (navigator.language || "").startsWith("en") ? navigator.language : "en-US", ar: "ar-LB", fr: "fr-FR" };
+const LANG_BADGE = { en: "EN", ar: "ع", fr: "FR" };
+const quote = t => cfg.lang === "ar" ? `«${t}»` : cfg.lang === "fr" ? `« ${t} »` : `“${t}”`;
+
 const store = {
   get(k, d) { try { const v = localStorage.getItem("vp9." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem("vp9." + k, JSON.stringify(v)); } catch {} }
 };
-const cfg = { sound: store.get("sound", true), vibe: store.get("vibe", true), code: store.get("code", "") };
-const ai = { freeLeft: 3, credits: null };
-let lastVerdict = null;
+function autoLang() {
+  for (const l of navigator.languages || [navigator.language || "en"]) { const c = l.slice(0, 2); if (T[c]) return c; }
+  return "en";
+}
+const cfg = { sound: store.get("sound", true), vibe: store.get("vibe", true), code: store.get("code", ""), lang: store.get("lang", "") || autoLang() };
+const ai = { freeLeft: FREE, credits: null };
+let L = T[cfg.lang], lastVerdict = null, state = "idle";
+
+/* ---------------- applying a language ---------------- */
+function setText(id, s) { $(id).textContent = s; }
+function introText() { const p = $("#said"); p.textContent = L.intro; const em = document.createElement("em"); em.textContent = L.example; p.append(em); }
+function hintFor() { return state === "rec" ? L.hintStop : state === "analyzing" ? L.hintBusy : lastVerdict ? L.hintAgain : L.hintRec; }
+function applyLang(lang) {
+  cfg.lang = lang; L = T[lang];
+  document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  $("#langBtn").textContent = LANG_BADGE[lang];
+  setText("#inappT", L.inappT); setText("#inappB", L.inappB);
+  setText("#gTruth", L.truth); setText("#gLie", L.lie);
+  setText("#aiLabel", L.aiLabel); $("#shareBtn").innerHTML = L.share;
+  setText("#hint", hintFor()); setText("#fine", L.fine);
+  setText("#shopTitle", L.shopTitle); setText("#shopIntro", L.shopIntro); setText("#packName", L.pack);
+  $("#perks").innerHTML = ""; L.perks.forEach(t => { const li = document.createElement("li"); li.textContent = t; $("#perks").append(li); });
+  setText("#haveCode", L.haveCode); setText("#closeBtn", L.close); setText("#redeemBtn", L.redeem); setText("#shopFine", L.shopFine);
+  setText("#setTitle", L.settings); setText("#langLabel", L.language); setText("#soundLabel", L.sound); setText("#vibeLabel", L.vibe);
+  setText("#forgetBtn", L.removeCode); setText("#doneBtn", L.done);
+  if (state === "idle" && !lastVerdict) introText();
+  if (lastVerdict && state === "idle") paintVerdictText(lastVerdict);
+  showCredits();
+}
+$("#langBtn").onclick = () => { const order = ["en", "ar", "fr"]; const next = order[(order.indexOf(cfg.lang) + 1) % 3]; store.set("lang", next); applyLang(next); };
 
 if (/Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly/i.test(navigator.userAgent)) $("#inapp").hidden = false;
 
@@ -343,38 +475,53 @@ function analyze(x, sr) {
   };
 }
 
-/* ---------------- judging ---------------- */
+/* ---------------- the machine's own verdict (no AI needed) ---------------- */
 const clamp01 = v => Math.max(0, Math.min(1, v));
-const CUES = [
-  { re: /\b(honestly|to be honest|i swear|believe me|trust me|i promise|swear to god|cross my heart)\b/g, pts: 13, why: "over-insisting" },
-  { re: /\b(literally|absolutely|totally|definitely|never ever|100 percent)\b/g, pts: 7, why: "too much certainty" },
-  { re: /\b(i think|maybe|kind of|sort of|i guess|probably|not really|i don't remember|i can't recall)\b/g, pts: 8, why: "hedging" },
-  { re: /\b(um+|uh+|er+|erm|hmm+)\b/g, pts: 6, why: "filler words" },
-  { re: /\b(didn't|did not|never|wasn't|was not|not me|no way)\b/g, pts: 5, why: "a flat denial" }
-];
+// Spoken giveaways in each language. Arabic covers Lebanese dialect as Chrome transcribes it.
+const CUE_WORDS = {
+  insist: ["honestly", "to be honest", "i swear", "believe me", "trust me", "i promise", "swear to god", "cross my heart",
+           "franchement", "honnetement", "je te jure", "je vous jure", "je jure", "crois moi", "croyez moi", "je te promets",
+           "والله", "وحياة", "صدقني", "صدقيني", "بصراحة", "بحلفلك", "اقسم", "عن جد", "بشرفي"],
+  certain: ["literally", "absolutely", "totally", "definitely", "never ever", "100 percent",
+            "absolument", "totalement", "litteralement", "jamais de la vie", "100 pour cent",
+            "اكيد", "مية بالمية", "ابدا", "طبعا", "ولا مرة"],
+  hedge: ["i think", "maybe", "kind of", "sort of", "i guess", "probably", "not really", "i don't remember", "i can't recall",
+          "je pense", "peut etre", "je crois", "genre", "plus ou moins", "je sais pas", "je ne sais pas", "je me souviens pas",
+          "يمكن", "بظن", "بعتقد", "تقريبا", "ما بعرف", "مش متاكد", "ما بتذكر"],
+  filler: ["um", "umm", "uh", "uhh", "er", "erm", "hmm", "euh", "bah", "ben", "يعني", "امم", "اممم", "اه"],
+  denial: ["didn't", "did not", "never", "wasn't", "was not", "not me", "no way",
+           "jamais", "pas moi", "c'est pas moi", "ce n'est pas moi",
+           "مش انا", "ما عملت", "ما كنت", "مستحيل"]
+};
+const CUE_PTS = { insist: 13, certain: 7, hedge: 8, filler: 6, denial: 5 };
+const norm = s => " " + s.toLowerCase().normalize("NFKD").replace(/\p{M}/gu, "").replace(/[ـ]/g, "")
+  .replace(/[^\p{L}\p{N}']+/gu, " ").replace(/\s+/g, " ").trim() + " ";
+const NORM_CUES = Object.fromEntries(Object.entries(CUE_WORDS).map(([k, list]) => [k, list.map(w => norm(w))]));
 function hash(s) { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return Math.abs(h); }
 function localJudge(text, f) {
   let s = 34; const why = [];
   if (f) {
-    const v = [
-      [clamp01((f.tremorSemitones - .25) / .5) * 16, "a shaky pitch"],
-      [clamp01((f.pitchRangeSemitones - 2) / 3) * 10, "a jumpy voice"],
-      [clamp01((f.pauseShare - .2) / .3) * 10, "long pauses"],
-      [clamp01((f.secondsBeforeSpeaking - .6) / 1.5) * 10, "a slow start"]
-    ];
-    v.forEach(([p, w]) => { s += p; if (p > 5) why.push([p, w]); });
+    [[clamp01((f.tremorSemitones - .25) / .5) * 16, "shaky"],
+     [clamp01((f.pitchRangeSemitones - 2) / 3) * 10, "jumpy"],
+     [clamp01((f.pauseShare - .2) / .3) * 10, "pauses"],
+     [clamp01((f.secondsBeforeSpeaking - .6) / 1.5) * 10, "slow"]]
+      .forEach(([p, k]) => { s += p; if (p > 5) why.push([p, k]); });
   }
-  const t = " " + text.toLowerCase() + " ";
-  CUES.forEach(c => { const n = (t.match(c.re) || []).length; if (n) { const p = Math.min(2, n) * c.pts; s += p; why.push([p, c.why]); } });
+  const t = norm(text);
+  for (const [k, list] of Object.entries(NORM_CUES)) {
+    let n = 0; for (const w of list) n += t.split(w).length - 1;
+    if (n) { const p = Math.min(2, n) * CUE_PTS[k]; s += p; why.push([p, k]); }
+  }
   s += (hash(text || "x") % 13) - 6;
   s = Math.max(6, Math.min(96, Math.round(s)));
   why.sort((a, b) => b[0] - a[0]);
-  const lie = s >= 50;
-  const top = why.slice(0, 2).map(w => w[1]);
-  const reason = lie
-    ? (top.length ? `Gave it away with ${top.join(" and ")}.` : "Something in that voice didn't sit right.")
-    : (top.length ? `Some ${top[0]}, but the story holds up.` : "Steady voice, clean story.");
-  return { verdict: lie ? "LIE" : "TRUTH", confidence: lie ? s : 100 - s + 2, reason, by: "machine" };
+  const lie = s >= 50, top = why.slice(0, 2).map(w => w[1]);
+  return { verdict: lie ? "LIE" : "TRUTH", confidence: lie ? s : 100 - s + 2, cues: top, by: "machine" };
+}
+function machineReason(v) {
+  const c = (v.cues || []).map(k => L.cues[k]);
+  if (v.verdict === "LIE") return c.length > 1 ? L.lie2(c[0], c[1]) : c.length ? L.lie1(c[0]) : L.lie0;
+  return c.length ? L.truth1(c[0]) : L.truth0;
 }
 
 /* ---------------- Claude verdicts through the helper ---------------- */
@@ -387,7 +534,7 @@ async function helper(path, body, ms = 30000) {
 }
 function showCredits() {
   const paid = ai.credits > 0;
-  $("#credits").textContent = paid ? `${ai.credits} LEFT` : ai.freeLeft > 0 ? `${ai.freeLeft} FREE TODAY` : "GET MORE";
+  $("#credits").textContent = paid ? L.left(ai.credits) : ai.freeLeft > 0 ? L.free(ai.freeLeft) : L.more;
   $("#lAi").classList.toggle("on", paid || ai.freeLeft > 0);
 }
 function takeCounts(d) {
@@ -405,7 +552,7 @@ async function refreshBalance() {
 async function aiJudge(text, f) {
   if (ai.freeLeft <= 0 && !(ai.credits > 0)) return { limited: true };
   try {
-    const { status, data } = await helper("/judge", { transcript: text, voice: f, code: cfg.code || undefined });
+    const { status, data } = await helper("/judge", { transcript: text, voice: f, code: cfg.code || undefined, lang: cfg.lang });
     if (status === 429) { takeCounts(data); return { limited: true }; }
     if (status !== 200) throw new Error(data.error || "HTTP " + status);
     takeCounts(data);
@@ -414,15 +561,16 @@ async function aiJudge(text, f) {
 }
 
 /* ---------------- recording flow ---------------- */
-let state = "idle", stream, nodes, chunks = [], recog = null, transcript = "", t0 = 0, beat = 0;
+let stream, nodes, chunks = [], recog = null, transcript = "", t0 = 0, beat = 0;
 const lcd = t => $("#lcd").textContent = t;
 function setLamps() { $("#lRec").classList.toggle("on", state === "rec"); }
+function setHint() { setText("#hint", hintFor()); }
 function startRecognition() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   transcript = ""; recog = null;
   if (!SR) return;
   try {
-    const r = new SR(); r.lang = navigator.language || "en-US"; r.continuous = true; r.interimResults = true;
+    const r = new SR(); r.lang = SPEECH[cfg.lang]; r.continuous = true; r.interimResults = true;
     let finals = "";
     r.onresult = e => {
       let interim = "";
@@ -431,7 +579,7 @@ function startRecognition() {
         e.results[i].isFinal ? finals += t + " " : interim += t;
       }
       transcript = (finals + interim).trim();
-      if (state === "rec") $("#said").textContent = transcript ? `“${transcript}”` : "Listening…";
+      if (state === "rec") $("#said").textContent = transcript ? quote(transcript) : L.listening;
     };
     r.onerror = () => {};
     r.start(); recog = r;
@@ -446,27 +594,25 @@ function stopRecognition() {
     try { recog.stop(); } catch { done(); }
   });
 }
+function twoLine(main, sub) { const p = $("#said"); p.textContent = main; const em = document.createElement("em"); em.textContent = sub; p.append(em); }
 
 async function startRec() {
   await audio();
-  if (!navigator.mediaDevices?.getUserMedia) { lcd("NO MIC"); $("#said").textContent = "This browser can't reach a microphone. Try Chrome, Edge or Safari."; return; }
+  if (!navigator.mediaDevices?.getUserMedia) { lcd("NO MIC"); $("#said").textContent = L.noMic; return; }
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } });
-  } catch {
-    lcd("MIC BLOCKED"); $("#said").innerHTML = "Microphone access is off.<em>Allow the mic in your browser's address bar, then press again.</em>"; return;
-  }
+  } catch { lcd("MIC BLOCKED"); twoLine(L.micOff, L.micHelp); return; }
   const src = ctx.createMediaStreamSource(stream), an = ctx.createAnalyser(), pr = ctx.createScriptProcessor(4096, 1, 1), mute = ctx.createGain();
   an.fftSize = 2048; mute.gain.value = 0;
   src.connect(an); src.connect(pr); pr.connect(mute); mute.connect(ctx.destination);
   chunks = []; pr.onaudioprocess = e => chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
   nodes = { src, an, pr, mute, buf: new Float32Array(2048), prevPitch: 0 };
-  $("#stamp").className = "stamp"; $("#shareBtn").hidden = true;
-  $("#said").textContent = "Listening…";
+  $("#stamp").className = "stamp"; $("#shareBtn").hidden = true; lastVerdict = null;
+  $("#said").textContent = L.listening;
   startRecognition();
   state = "rec"; t0 = performance.now();
-  $("#recBtn").classList.add("live"); $("#recBtn").setAttribute("aria-label", "Stop recording");
-  $("#hint").textContent = "PRESS TO STOP";
-  clack(); humOn(); buzz(40); setLamps();
+  $("#recBtn").classList.add("live");
+  setHint(); clack(); humOn(); buzz(40); setLamps();
   needle.target = .12; needle.wild = 0;
   beat = setInterval(() => buzz([25, 110, 25]), 950);
 }
@@ -479,7 +625,7 @@ async function stopRec() {
   stream.getTracks().forEach(t => t.stop());
   live.loud = live.pitch = live.trem = 0;
   $("#recBtn").classList.remove("live"); $("#recBtn").disabled = true;
-  $("#hint").textContent = "ANALYZING"; setLamps(); clack();
+  setHint(); setLamps(); clack();
   lcd("ANALYZING"); needle.wild = 1; needle.target = .5; shake("rumble");
 
   await stopRecognition();
@@ -489,42 +635,46 @@ async function stopRec() {
   const text = transcript.trim();
 
   if (!f && !text) { finishNoSpeech(); return; }
-  $("#said").textContent = text ? `“${text}”` : "(Couldn't make out the words, judging the voice.)";
+  $("#said").textContent = text ? quote(text) : L.mumble;
   const minWait = new Promise(r => setTimeout(r, 1800));
   const [res] = await Promise.all([aiJudge(text, f), minWait]);
   const v = res && !res.limited ? res : localJudge(text, f);
-  verdict(v, text, res?.limited);
+  verdict({ ...v, text, limited: !!res?.limited });
 }
 
 function finishNoSpeech() {
   state = "idle"; needle.wild = 0; needle.target = .08;
   $("#machine").classList.remove("rumble"); humOff();
-  $("#recBtn").disabled = false; $("#hint").textContent = "PRESS TO RECORD"; setLamps();
-  lcd("NO SPEECH"); $("#said").innerHTML = "The machine heard nothing.<em>Speak up, closer to the mic, for at least two seconds.</em>";
+  $("#recBtn").disabled = false; setHint(); setLamps();
+  lcd("NO SPEECH"); twoLine(L.heardNothing, L.heardHelp);
 }
 
-function verdict(v, text, limited) {
+function paintVerdictText(v) {
+  const lie = v.verdict === "LIE", word = lie ? L.lie : L.truth;
+  setText("#stampWord", word); setText("#stampPct", L.certain(v.confidence));
+  $("#stamp").classList.toggle("long", word.length > 5);
+  const said = $("#said"); said.innerHTML = ""; if (v.text) said.append(quote(v.text));
+  const em = document.createElement("em");
+  em.textContent = (v.by === "claude" ? v.reason : machineReason(v)) + "  · " + (v.by === "claude" ? L.byClaude : L.byMachine);
+  said.append(em);
+  if (v.limited) {
+    const up = document.createElement("em"); const a = document.createElement("a");
+    a.href = "#"; a.textContent = L.limit; a.onclick = e => { e.preventDefault(); openShop(); };
+    up.append(a); said.append(up);
+  }
+}
+
+function verdict(v) {
   const lie = v.verdict === "LIE";
-  lastVerdict = { ...v, text };
   needle.wild = 0;
   needle.target = lie ? .5 + (v.confidence - 50) / 100 : .5 - (v.confidence - 50) / 100;
   needle.vel += lie ? .12 : -.12;
   $("#machine").classList.remove("rumble"); humOff();
   setTimeout(() => {
-    $("#stampWord").textContent = lie ? "LIE" : "TRUTH";
-    $("#stampPct").textContent = `${v.confidence}% CERTAIN`;
-    $("#stamp").className = "stamp show" + (lie ? "" : " truth");
+    lastVerdict = v; state = "idle";
+    paintVerdictText(v);
+    $("#stamp").classList.add("show"); $("#stamp").classList.toggle("truth", !lie);
     lcd(lie ? `DECEPTION ${v.confidence}%` : `TRUTHFUL ${v.confidence}%`);
-    const said = $("#said"); said.innerHTML = ""; if (text) said.append(`“${text}”`);
-    const em = document.createElement("em");
-    em.textContent = v.reason + (v.by === "claude" ? "  · judged by Claude" : "  · machine verdict");
-    said.append(em);
-    if (limited) {
-      const up = document.createElement("em"); const a = document.createElement("a");
-      a.href = "#"; a.textContent = "Free Claude verdicts used up today. Get more →";
-      a.onclick = e => { e.preventDefault(); openShop(); };
-      up.append(a); said.append(up);
-    }
     tone({ type: "sine", f: 90, f2: 40, dur: .25, vol: .5 }); clack();
     if (lie) {
       tone({ type: "sawtooth", f: 150, dur: .7, vol: .12, delay: .12 }); tone({ type: "square", f: 145, dur: .7, vol: .06, delay: .12 });
@@ -533,8 +683,7 @@ function verdict(v, text, limited) {
       tone({ type: "sine", f: 880, dur: .9, vol: .15, delay: .1 }); tone({ type: "sine", f: 1320, dur: .9, vol: .08, delay: .18 });
       buzz([60]);
     }
-    state = "idle"; $("#recBtn").disabled = false; $("#hint").textContent = "PRESS TO RECORD AGAIN"; setLamps();
-    $("#recBtn").setAttribute("aria-label", "Start recording");
+    $("#recBtn").disabled = false; setHint(); setLamps();
     $("#shareBtn").hidden = false;
   }, 420);
 }
@@ -547,42 +696,47 @@ function wrapLines(c, text, maxW) {
   for (const w of words) { const t = line ? line + " " + w : w; if (c.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
   if (line) lines.push(line); return lines;
 }
+function fitFont(c, text, weight, size, family, maxW) {
+  let s = size; c.font = `${weight} ${s}px ${family}`;
+  while (c.measureText(text).width > maxW && s > 40) { s -= 6; c.font = `${weight} ${s}px ${family}`; }
+}
 async function shareCard() {
   if (!lastVerdict) return;
   await document.fonts.ready;
-  const v = lastVerdict, lie = v.verdict === "LIE", ink = lie ? "#d23a2e" : "#3f9a51";
+  const v = lastVerdict, lie = v.verdict === "LIE", ink = lie ? "#d23a2e" : "#3f9a51", ar = cfg.lang === "ar";
+  const DISP = ar ? '"Lalezar", "Cairo", sans-serif' : '"Big Shoulders Stencil Display", Impact, sans-serif';
+  const BODY = ar ? '"Cairo", Tahoma, sans-serif' : '"Barlow Condensed", sans-serif';
+  const dw = ar ? "400" : "900";
   const c = document.createElement("canvas"); c.width = 1080; c.height = 1920;
   const x = c.getContext("2d");
+  x.direction = ar ? "rtl" : "ltr";
   const bg = x.createRadialGradient(540, 300, 100, 540, 900, 1300); bg.addColorStop(0, "#2a2520"); bg.addColorStop(1, "#0b0a09");
   x.fillStyle = bg; x.fillRect(0, 0, 1080, 1920);
   x.textAlign = "center";
-  // brass plate
   const pg = x.createLinearGradient(0, 150, 0, 250); pg.addColorStop(0, "#e2c27e"); pg.addColorStop(.5, "#c9a45c"); pg.addColorStop(1, "#7a5f2c");
   x.fillStyle = pg; x.beginPath(); x.roundRect(240, 150, 600, 110, 10); x.fill();
   x.fillStyle = "#2a1e08"; x.font = '900 72px "Big Shoulders Stencil Display", Impact'; x.fillText("VERITAS VP-9", 540, 230);
-  x.fillStyle = "#b9b2a3"; x.font = '600 34px "Barlow Condensed", sans-serif'; x.fillText("THE VOICE POLYGRAPH HAS SPOKEN", 540, 330);
-  // paper and stamp
+  x.fillStyle = "#b9b2a3"; x.font = `600 36px ${BODY}`; x.fillText(L.cardTop, 540, 330);
   x.fillStyle = "#efe5cb"; x.beginPath(); x.roundRect(90, 420, 900, 620, 18); x.fill();
   x.fillStyle = "#d9c9a3"; for (let y = 440; y < 1030; y += 24) x.fillRect(90, y, 900, (y / 24) % 5 === 0 ? 2 : 1);
   x.save(); x.translate(540, 730); x.rotate(-0.2);
-  x.strokeStyle = ink; x.lineWidth = 14; x.beginPath(); x.roundRect(-330, -170, 660, 340, 26); x.stroke();
-  x.fillStyle = ink; x.font = '900 230px "Big Shoulders Stencil Display", Impact'; x.fillText(lie ? "LIE" : "TRUTH", 0, 70);
-  x.font = '700 50px "Barlow Condensed", sans-serif'; x.fillText(`${v.confidence}% CERTAIN`, 0, 140);
+  x.strokeStyle = ink; x.lineWidth = 14; x.beginPath(); x.roundRect(-340, -175, 680, 350, 26); x.stroke();
+  x.fillStyle = ink; fitFont(x, lie ? L.lie : L.truth, dw, 230, DISP, 600); x.fillText(lie ? L.lie : L.truth, 0, 60);
+  x.font = `700 50px ${BODY}`; x.fillText(L.certain(v.confidence), 0, 140);
   x.restore();
-  // statement and reason
-  x.fillStyle = "#f1e8d2"; x.font = '600 58px "Barlow Condensed", sans-serif';
-  const said = v.text ? `“${v.text}”` : "(the words were a mumble)";
-  wrapLines(x, said, 900).slice(0, 4).forEach((l, i) => x.fillText(l, 540, 1160 + i * 70));
-  x.fillStyle = "#b9b2a3"; x.font = '500 42px "Barlow Condensed", sans-serif';
-  wrapLines(x, v.reason, 880).slice(0, 2).forEach((l, i) => x.fillText(l, 540, 1480 + i * 54));
-  // footer
-  x.fillStyle = "#ffb347"; x.font = '900 70px "Big Shoulders Stencil Display", Impact'; x.fillText("CAN YOU FOOL THE MACHINE?", 540, 1690);
+  x.fillStyle = "#f1e8d2"; x.font = `600 56px ${BODY}`;
+  wrapLines(x, v.text ? quote(v.text) : L.cardMumble, 900).slice(0, 4).forEach((l, i) => x.fillText(l, 540, 1160 + i * 72));
+  x.fillStyle = "#b9b2a3"; x.font = `500 40px ${BODY}`;
+  wrapLines(x, v.by === "claude" ? v.reason : machineReason(v), 880).slice(0, 2).forEach((l, i) => x.fillText(l, 540, 1480 + i * 56));
+  x.fillStyle = "#ffb347"; fitFont(x, L.cardCta, dw, 70, DISP, 940); x.fillText(L.cardCta, 540, 1690);
+  x.direction = "ltr";
   x.fillStyle = "#e8dfcc"; x.font = '400 36px "Share Tech Mono", monospace'; x.fillText(`@${INSTAGRAM}`, 540, 1760);
-  x.fillStyle = "#7d776c"; x.font = '500 28px "Barlow Condensed", sans-serif'; x.fillText("For entertainment only", 540, 1830);
+  x.direction = ar ? "rtl" : "ltr";
+  x.fillStyle = "#7d776c"; x.font = `500 28px ${BODY}`; x.fillText(L.cardFine, 540, 1830);
   const blob = await new Promise(r => c.toBlob(r, "image/png"));
   const file = new File([blob], `veritas-${lie ? "lie" : "truth"}.png`, { type: "image/png" });
   try {
-    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], text: `The machine says ${v.verdict}. Try it: https://${APP_URL}` }); return; }
+    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], text: `${L.shareText(lie ? L.lie : L.truth)} https://${APP_URL}` }); return; }
   } catch (e) { if (e.name === "AbortError") return; }
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
@@ -591,9 +745,10 @@ $("#shareBtn").onclick = shareCard;
 
 /* ---------------- shop & settings ---------------- */
 function openShop() {
-  if (BUY_URL) { $("#buyBtn").href = BUY_URL; $("#buyNote").textContent = "After paying you'll get a code. Enter it below."; }
-  else { $("#buyBtn").href = `https://ig.me/m/${INSTAGRAM}`; $("#buyBtn").textContent = "BUY ON INSTAGRAM"; $("#buyNote").textContent = `Message @${INSTAGRAM} to buy. You'll get a code to enter below.`; }
-  $("#codeIn").value = cfg.code; $("#codeMsg").textContent = "";
+  const b = $("#buyBtn");
+  if (BUY_URL) { b.href = BUY_URL; b.textContent = L.buy; setText("#buyNote", L.buyNoteUrl); }
+  else { b.href = `https://ig.me/m/${INSTAGRAM}`; b.textContent = L.buyIg; setText("#buyNote", L.buyNoteIg(INSTAGRAM)); }
+  $("#codeIn").value = cfg.code; setText("#codeMsg", "");
   $("#shop").showModal();
 }
 $("#creditsBtn").onclick = openShop;
@@ -601,28 +756,28 @@ $("#codeIn").oninput = e => {
   let v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (v.startsWith("VP9")) v = v.slice(3);
   v = v.slice(0, 8);
-  e.target.value = "VP9-" + v.slice(0, 4) + (v.length > 4 ? "-" + v.slice(4) : "");
-  if (!v) e.target.value = "";
+  e.target.value = v ? "VP9-" + v.slice(0, 4) + (v.length > 4 ? "-" + v.slice(4) : "") : "";
 };
 $("#redeemBtn").onclick = async () => {
   const code = $("#codeIn").value.trim().toUpperCase();
-  if (!/^VP9-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)) { $("#codeMsg").textContent = "Codes look like VP9-ABCD-1234."; return; }
-  $("#codeMsg").textContent = "Checking…";
+  if (!/^VP9-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code)) { setText("#codeMsg", L.codeFormat); return; }
+  setText("#codeMsg", L.checking);
   try {
     const { status, data } = await helper("/status", { code }, 10000);
-    if (status !== 200) { $("#codeMsg").textContent = "That code wasn't found. Check it and try again."; return; }
+    if (status !== 200) { setText("#codeMsg", L.notFound); return; }
     cfg.code = code; store.set("code", code); takeCounts(data);
-    $("#codeMsg").textContent = `Unlocked. ${data.credits} Claude verdicts ready.`;
+    setText("#codeMsg", L.unlocked(data.credits));
     setTimeout(() => $("#shop").close(), 1200);
-  } catch { $("#codeMsg").textContent = "No connection. Try again in a moment."; }
+  } catch { setText("#codeMsg", L.offline); }
 };
 $("#gearBtn").onclick = () => {
-  $("#soundIn").checked = cfg.sound; $("#vibeIn").checked = cfg.vibe;
-  $("#codeLine").textContent = cfg.code ? `Pack code: ${cfg.code} (${ai.credits ?? "?"} verdicts left)` : "No pack code on this device.";
+  $("#soundIn").checked = cfg.sound; $("#vibeIn").checked = cfg.vibe; $("#langIn").value = cfg.lang;
+  setText("#codeLine", cfg.code ? L.codeOn(cfg.code, ai.credits ?? "?") : L.noCode);
   $("#forgetBtn").hidden = !cfg.code;
   $("#settings").showModal();
 };
-$("#forgetBtn").onclick = () => { cfg.code = ""; store.set("code", ""); ai.credits = null; showCredits(); $("#codeLine").textContent = "Code removed from this device."; $("#forgetBtn").hidden = true; };
+$("#langIn").onchange = e => { store.set("lang", e.target.value); applyLang(e.target.value); setText("#codeLine", cfg.code ? L.codeOn(cfg.code, ai.credits ?? "?") : L.noCode); };
+$("#forgetBtn").onclick = () => { cfg.code = ""; store.set("code", ""); ai.credits = null; showCredits(); setText("#codeLine", L.removed); $("#forgetBtn").hidden = true; };
 $("#settings").addEventListener("close", () => {
   cfg.sound = $("#soundIn").checked; cfg.vibe = $("#vibeIn").checked;
   store.set("sound", cfg.sound); store.set("vibe", cfg.vibe);
@@ -652,7 +807,7 @@ function frame(now) {
 }
 
 addEventListener("resize", sizeStrip);
-sizeStrip(); setLamps(); showCredits(); refreshBalance();
+applyLang(cfg.lang); sizeStrip(); setLamps(); refreshBalance();
 requestAnimationFrame(frame);
 </script>
 </body>
