@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d0c0b">
+<title>Vocal Polygraph</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@700;900&family=Barlow+Condensed:wght@500;600;700&family=Share+Tech+Mono&display=swap">
+<style>
+/* One machine, centered: brass nameplate, analog gauge, amber readout, chart paper with stamp, big red button. Single dark look by design. */
+:root{
+  --room:#0d0c0b; --steel-hi:#3a3d40; --steel-lo:#17191b; --bezel:#08090a;
+  --brass:#c9a45c; --brass-lo:#7a5f2c; --face:#f1e8d2; --paper:#efe5cb; --grid:#d9c9a3;
+  --ink:#1b1a18; --red:#c0261c; --red-hi:#ff5a45; --green:#2f7d3e; --green-hi:#63d17a;
+  --blue:#21406b; --amber:#ffb347; --lcd:#170f05; --label:#b9b2a3;
+  --stencil:"Big Shoulders Stencil Display",Impact,sans-serif;
+  --cond:"Barlow Condensed","Arial Narrow",sans-serif;
+  --mono:"Share Tech Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(ellipse at 50% 0%,#24201b 0%,var(--room) 70%);color:var(--label);font:16px/1.4 var(--cond);
+  display:grid;place-items:center;min-height:100%;
+  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));
+  padding-block:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-bottom,0px))}
+.machine{width:min(100%,480px);border-radius:22px;padding:18px 18px 22px;position:relative;display:grid;gap:14px;
+  background:linear-gradient(160deg,var(--steel-hi),var(--steel-lo) 60%);
+  box-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 -2px 0 rgba(0,0,0,.6) inset,0 30px 60px rgba(0,0,0,.6),0 0 0 1px #000}
+.machine::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.35;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px)}
+.screw{position:absolute;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#9a9a9a,#3a3a3a);box-shadow:0 1px 1px #000}
+.screw::after{content:"";position:absolute;left:1px;right:1px;top:4px;height:2px;background:#222;transform:rotate(35deg)}
+.s1{top:9px;left:9px}.s2{top:9px;right:9px}.s3{bottom:9px;left:9px}.s4{bottom:9px;right:9px}
+.plate{justify-self:center;display:flex;align-items:center;gap:10px;padding:5px 16px;border-radius:4px;
+  background:linear-gradient(180deg,#e2c27e,var(--brass) 45%,var(--brass-lo));color:#2a1e08;box-shadow:0 2px 4px rgba(0,0,0,.6)}
+.plate b{font:900 22px/1 var(--stencil);letter-spacing:.12em}
+.plate small{font:600 11px var(--cond);letter-spacing:.2em}
+.gear{position:absolute;top:14px;right:24px;width:34px;height:34px;border-radius:50%;border:1px solid #000;cursor:pointer;
+  background:radial-gradient(circle at 40% 35%,#55595d,#1d1f21);color:var(--label);display:grid;place-items:center;z-index:3}
+.gear svg{width:18px;height:18px}
+.gauge{border-radius:14px;padding:10px 10px 0;background:var(--bezel);box-shadow:0 2px 0 rgba(255,255,255,.08),0 0 0 3px #000 inset}
+.gauge svg{display:block;width:100%;height:auto}
+.lcd{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 12px;border-radius:6px;background:var(--lcd);
+  box-shadow:0 0 0 2px #000,0 2px 6px rgba(0,0,0,.8) inset;font:20px/1 var(--mono);color:var(--amber);text-shadow:0 0 8px rgba(255,179,71,.6);letter-spacing:.06em}
+.lamps{display:flex;gap:10px;font:600 10px var(--cond);letter-spacing:.14em;color:var(--label);text-shadow:none}
+.lamp{display:flex;align-items:center;gap:5px}
+.lamp i{width:9px;height:9px;border-radius:50%;background:#2a2a2a;box-shadow:0 0 0 1px #000}
+.lamp.on.g i{background:var(--green-hi);box-shadow:0 0 8px var(--green-hi)}
+.lamp.on.r i{background:var(--red-hi);box-shadow:0 0 10px var(--red-hi);animation:blink 1s steps(2) infinite}
+.lamp.on.a i{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+@keyframes blink{50%{opacity:.25}}
+.paper{position:relative;border-radius:6px;overflow:hidden;box-shadow:0 0 0 3px #000,0 6px 14px rgba(0,0,0,.6) inset}
+.paper canvas{display:block;width:100%;height:150px}
+.paper::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:0 8px 16px -8px rgba(0,0,0,.45) inset,0 -8px 16px -8px rgba(0,0,0,.45) inset}
+.stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-12deg);display:grid;justify-items:center;
+  padding:6px 18px 8px;border:5px solid currentColor;border-radius:10px;color:var(--red);opacity:0;pointer-events:none;mix-blend-mode:multiply}
+.stamp b{font:900 64px/0.9 var(--stencil);letter-spacing:.06em}
+.stamp small{font:700 14px var(--cond);letter-spacing:.18em}
+.stamp.truth{color:var(--green)}
+.stamp.show{animation:stamp .38s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) rotate(-24deg) scale(2.6)}100%{opacity:.92;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}}
+.said{min-height:2.8em;margin:0;text-align:center;color:#e8dfcc;font:500 17px/1.35 var(--cond);overflow-wrap:anywhere}
+.said em{display:block;font-style:normal;color:var(--label);font-size:14px;margin-top:2px}
+.deck{display:grid;justify-items:center;gap:8px}
+.rec{width:116px;height:116px;border-radius:50%;cursor:pointer;position:relative;border:0;padding:0;
+  background:radial-gradient(circle at 50% 50%,#2b2d2f 58%,#0d0e0f 60%,#4a4d50 66%,#1c1d1f 72%);box-shadow:0 6px 14px rgba(0,0,0,.7)}
+.rec span{position:absolute;inset:14px;border-radius:50%;display:grid;place-items:center;font:900 22px var(--stencil);letter-spacing:.14em;color:#ffe6e1;
+  background:radial-gradient(circle at 38% 30%,#ff8a7a,var(--red) 45%,#6e0f09);box-shadow:0 4px 0 #4a0905,0 8px 12px rgba(0,0,0,.6);transition:transform .08s,box-shadow .08s}
+.rec:active span{transform:translateY(3px);box-shadow:0 1px 0 #4a0905,0 3px 6px rgba(0,0,0,.6)}
+.rec.live span{animation:glow 1s ease-in-out infinite;transform:translateY(3px);box-shadow:0 1px 0 #4a0905,0 0 28px 6px rgba(255,70,50,.55)}
+.rec:disabled{cursor:wait}
+.rec:focus-visible{outline:3px solid var(--amber);outline-offset:4px}
+@keyframes glow{50%{box-shadow:0 1px 0 #4a0905,0 0 44px 14px rgba(255,70,50,.75)}}
+.hint{font:600 12px var(--cond);letter-spacing:.22em;color:var(--label)}
+.fine{text-align:center;font:500 11px var(--cond);letter-spacing:.08em;color:#7d776c;margin:0}
+.shake{animation:shake .45s cubic-bezier(.36,.07,.19,.97)}
+.rumble{animation:rumble .12s linear infinite}
+@keyframes shake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(4px,-2px)}30%,50%,70%{transform:translate(-7px,2px)}40%,60%{transform:translate(7px,-1px)}}
+@keyframes rumble{0%{transform:translate(0,0)}25%{transform:translate(.6px,-.5px)}50%{transform:translate(-.6px,.4px)}75%{transform:translate(.4px,.6px)}}
+dialog{border:0;border-radius:14px;padding:0;background:#1d1f21;color:#e8dfcc;width:min(92vw,420px);box-shadow:0 30px 80px #000}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+dialog form{display:grid;gap:12px;padding:20px}
+dialog h2{margin:0;font:900 26px var(--stencil);letter-spacing:.08em;color:var(--brass)}
+dialog p{margin:0;font-size:15px;color:var(--label)}
+dialog label{display:grid;gap:4px;font:600 12px var(--cond);letter-spacing:.14em}
+dialog input[type=password]{font:15px var(--mono);padding:10px;border-radius:6px;border:1px solid #444;background:#0f1011;color:#fff}
+.chk{display:flex!important;gap:8px;align-items:center;font-size:15px!important;letter-spacing:.04em!important}
+.btns{display:flex;gap:8px;justify-content:flex-end}
+.btns button{font:700 15px var(--cond);letter-spacing:.1em;padding:9px 16px;border-radius:6px;border:1px solid #555;background:#2a2c2e;color:#eee;cursor:pointer}
+.btns button.go{background:var(--brass);border-color:var(--brass);color:#22180a}
+@media (max-height:720px){.paper canvas{height:110px}.rec{width:96px;height:96px}.stamp b{font-size:52px}}
+@media (prefers-reduced-motion:reduce){.shake,.rumble,.rec.live span,.lamp.on.r i{animation:none}}
+</style>
+</head>
+<body>
+<main class="machine" id="machine">
+  <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+  <div class="plate"><b>VERITAS</b><small>VOICE POLYGRAPH · VP-9</small></div>
+  <button class="gear" id="gearBtn" aria-label="Settings"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7 7 0 0 0-1.7-1L15 3h-4l-.4 2.7a7 7 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7 7 0 0 0 1.7 1L11 21h4l.4-2.7a7 7 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
+
+  <div class="gauge">
+    <svg viewBox="0 0 300 172" aria-hidden="true">
+      <defs>
+        <radialGradient id="face" cx="50%" cy="100%" r="100%"><stop offset="0" stop-color="#fbf5e6"/><stop offset="1" stop-color="#dccfae"/></radialGradient>
+        <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      </defs>
+      <path d="M8 168 A142 142 0 0 1 292 168 Z" fill="url(#face)"/>
+      <g id="zones" fill="none" stroke-width="12"></g>
+      <g id="ticks" stroke="#1b1a18"></g>
+      <text x="40" y="150" fill="#2f7d3e" style="font:900 20px var(--stencil);letter-spacing:.08em">TRUTH</text>
+      <text x="260" y="150" text-anchor="end" fill="#c0261c" style="font:900 20px var(--stencil);letter-spacing:.08em">LIE</text>
+      <text x="150" y="122" text-anchor="middle" fill="#6b6150" style="font:600 10px var(--cond);letter-spacing:.3em">DECEPTION INDEX</text>
+      <g id="needle"><path d="M148.4 160 L150 32 L151.6 160 Z" fill="#b3261e"/><path d="M147 160 h6 v12 h-6z" fill="#1b1a18"/></g>
+      <circle cx="150" cy="160" r="11" fill="#1b1a18"/><circle cx="150" cy="160" r="4" fill="#c9a45c"/>
+      <path d="M8 168 A142 142 0 0 1 292 168 Z" fill="url(#glass)"/>
+    </svg>
+  </div>
+
+  <div class="lcd"><span id="lcd">READY</span>
+    <span class="lamps"><span class="lamp g on" id="lPow"><i></i>PWR</span><span class="lamp r" id="lRec"><i></i>REC</span><span class="lamp a" id="lAi"><i></i>AI</span></span>
+  </div>
+
+  <div class="paper"><canvas id="strip"></canvas>
+    <div class="stamp" id="stamp"><b id="stampWord">LIE</b><small id="stampPct">87% CERTAIN</small></div>
+  </div>
+
+  <p class="said" id="said">Press the red button and say something about yourself.<em>“I've never eaten food off the floor.”</em></p>
+
+  <div class="deck">
+    <button class="rec" id="recBtn" aria-label="Start recording"><span>REC</span></button>
+    <span class="hint" id="hint">PRESS TO RECORD</span>
+  </div>
+  <p class="fine">For entertainment. No machine can truly read a lie.</p>
+</main>
+
+<dialog id="settings">
+  <form method="dialog" id="setForm">
+    <h2>SETTINGS</h2>
+    <p>Add your Anthropic API key to let Claude judge your wording and voice. It stays in this browser only. Without a key the machine uses its built-in voice analysis.</p>
+    <label for="keyIn">ANTHROPIC API KEY<input type="password" id="keyIn" autocomplete="off" placeholder="sk-ant-..."></label>
+    <label class="chk"><input type="checkbox" id="soundIn" checked> Machine sounds</label>
+    <label class="chk"><input type="checkbox" id="vibeIn" checked> Vibration (Android)</label>
+    <div class="btns"><button value="cancel">Close</button><button value="save" class="go">Save</button></div>
+  </form>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("vp9." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("vp9." + k, JSON.stringify(v)); } catch {} }
+};
+const cfg = { key: store.get("key", ""), sound: store.get("sound", true), vibe: store.get("vibe", true) };
+
+/* ---------------- gauge ---------------- */
+(function buildGauge() {
+  const cx = 150, cy = 160, ang = v => Math.PI * (1 - v);
+  const pt = (v, r) => [cx + r * Math.cos(ang(v)), cy - r * Math.sin(ang(v))];
+  const arc = (a, b, r) => { const [x1, y1] = pt(a, r), [x2, y2] = pt(b, r); return `M${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}`; };
+  $("#zones").innerHTML = `<path d="${arc(0, .4, 122)}" stroke="#2f7d3e" opacity=".85"/><path d="${arc(.4, .6, 122)}" stroke="#d39a2a" opacity=".85"/><path d="${arc(.6, 1, 122)}" stroke="#c0261c" opacity=".85"/>`;
+  let t = "";
+  for (let i = 0; i <= 50; i++) {
+    const v = i / 50, big = i % 5 === 0, [x1, y1] = pt(v, 114), [x2, y2] = pt(v, big ? 100 : 107);
+    t += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="${big ? 2 : 1}"/>`;
+  }
+  $("#ticks").innerHTML = t;
+})();
+const needle = { pos: .08, vel: 0, target: .08, wild: 0 };
+function stepNeedle(now) {
+  let tgt = needle.target;
+  if (needle.wild) tgt += needle.wild * (Math.sin(now / 90) * .25 + Math.sin(now / 37) * .12 + (Math.random() - .5) * .2);
+  needle.vel += (Math.max(-.02, Math.min(1.02, tgt)) - needle.pos) * .09;
+  needle.vel *= .78;
+  needle.pos += needle.vel;
+  $("#needle").setAttribute("transform", `rotate(${-90 + needle.pos * 180} 150 160)`);
+}
+
+/* ---------------- chart paper ---------------- */
+const cv = $("#strip"), g = cv.getContext("2d");
+let dpr = 1, W = 0, H = 0, col = 0;
+const pens = [
+  { color: "#c0261c", y: .3, w: 1.8 },  // pitch
+  { color: "#21406b", y: .62, w: 1.6 }, // loudness
+  { color: "#2f7d3e", y: .85, w: 1.4 }  // tremor
+];
+const live = { pitch: 0, loud: 0, trem: 0 };
+function sizeStrip() {
+  dpr = Math.min(3, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.fillStyle = "#efe5cb"; g.fillRect(0, 0, W, H);
+  for (let x = 0; x < W; x += 2) paperSlice(x, 2, true);
+  pens.forEach(p => p.last = p.y * H);
+}
+function paperSlice(x, w, blank) {
+  g.fillStyle = "#efe5cb"; g.fillRect(x, 0, w, H);
+  g.fillStyle = "#d9c9a3";
+  for (let y = 0; y < H; y += 12) g.fillRect(x, y, w, (y / 12) % 5 === 0 ? 1 : .5);
+  col += w;
+  if (col % 12 < w) g.fillRect(x, 0, .6, H);
+  if (col % 60 < w) { g.fillStyle = "#c8b585"; g.fillRect(x, 0, 1.2, H); }
+}
+function stepStrip(speed) {
+  const s = Math.max(1, Math.round(speed));
+  g.drawImage(cv, s * dpr, 0, cv.width - s * dpr, cv.height, 0, 0, W - s, H);
+  paperSlice(W - s, s);
+  const vals = [
+    live.pitch ? .3 - Math.max(-.22, Math.min(.22, (live.pitch - 160) / 500)) : .3,
+    .62 - live.loud * .22,
+    .85 - live.trem * .12
+  ];
+  pens.forEach((p, i) => {
+    const y = (vals[i] + (Math.random() - .5) * .006) * H;
+    g.strokeStyle = p.color; g.lineWidth = p.w; g.lineCap = "round";
+    g.beginPath(); g.moveTo(W - s - 1, p.last); g.lineTo(W - 1, y); g.stroke();
+    p.last = y;
+  });
+}
+
+/* ---------------- sound & vibration ---------------- */
+let ctx, hum = null;
+async function audio() { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state !== "running") await ctx.resume(); return ctx; }
+function tone({ type = "sine", f = 440, f2, dur = .2, vol = .2, delay = 0 }) {
+  if (!cfg.sound || !ctx) return;
+  const t = ctx.currentTime + delay, o = ctx.createOscillator(), a = ctx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  a.gain.setValueAtTime(vol, t); a.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(a).connect(ctx.destination); o.start(t); o.stop(t + dur + .02);
+}
+function clack() {
+  if (!cfg.sound || !ctx) return;
+  const b = ctx.createBuffer(1, ctx.sampleRate * .05, ctx.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 3;
+  const s = ctx.createBufferSource(), a = ctx.createGain(); a.gain.value = .5; s.buffer = b; s.connect(a).connect(ctx.destination); s.start();
+}
+function humOn() {
+  if (!cfg.sound || !ctx || hum) return;
+  const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), a = ctx.createGain();
+  o.type = "sawtooth"; o.frequency.value = 52; f.type = "lowpass"; f.frequency.value = 260; a.gain.value = 0;
+  a.gain.linearRampToValueAtTime(.05, ctx.currentTime + .3);
+  o.connect(f).connect(a).connect(ctx.destination); o.start(); hum = { o, a };
+}
+function humOff() { if (!hum) return; const { o, a } = hum; a.gain.linearRampToValueAtTime(0, ctx.currentTime + .25); o.stop(ctx.currentTime + .3); hum = null; }
+const buzz = p => { if (cfg.vibe && navigator.vibrate) try { navigator.vibrate(p); } catch {} };
+function shake(cls = "shake") { const m = $("#machine"); m.classList.remove(cls); void m.offsetWidth; m.classList.add(cls); }
+
+/* ---------------- voice analysis ---------------- */
+function detectPitch(buf, sr) {
+  const n = buf.length, minLag = Math.floor(sr / 400), maxLag = Math.min(Math.ceil(sr / 70), n - 64);
+  const r = new Float32Array(maxLag + 2); let best = 0;
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    let s = 0, e1 = 0, e2 = 0;
+    for (let i = 0; i < n - lag; i++) { const a = buf[i], b = buf[i + lag]; s += a * b; e1 += a * a; e2 += b * b; }
+    r[lag] = e1 && e2 ? s / Math.sqrt(e1 * e2) : 0; if (r[lag] > best) best = r[lag];
+  }
+  if (best < .55) return 0;
+  for (let lag = minLag + 1; lag < maxLag; lag++)
+    if (r[lag] >= .9 * best && r[lag] >= r[lag - 1] && r[lag] >= r[lag + 1]) {
+      const a = r[lag - 1], b = r[lag], c = r[lag + 1], d = a - 2 * b + c;
+      return sr / (lag + (d ? .5 * (a - c) / d : 0));
+    }
+  return 0;
+}
+const rmsOf = b => { let s = 0; for (const v of b) s += v * v; return Math.sqrt(s / b.length); };
+function decimate(x, sr) {
+  if (sr < 32000) return { y: x, s: sr };
+  const y = new Float32Array(x.length >> 1); for (let i = 0; i < y.length; i++) y[i] = (x[2 * i] + x[2 * i + 1]) / 2;
+  return { y, s: sr / 2 };
+}
+const mean = a => a.reduce((p, q) => p + q, 0) / (a.length || 1);
+const std = a => { const m = mean(a); return Math.sqrt(mean(a.map(v => (v - m) ** 2))); };
+const semi = (f, ref) => 12 * Math.log2(f / ref);
+function analyze(x, sr) {
+  const { y, s } = decimate(x, sr), N = Math.round(s * .043), hop = N >> 1;
+  const rms = []; for (let i = 0; i + N <= y.length; i += hop) rms.push(rmsOf(y.subarray(i, i + N)));
+  if (rms.length < 10) return null;
+  const thr = Math.max(.006, [...rms].sort((a, b) => a - b)[Math.floor(rms.length * .15)] * 3);
+  const p = rms.map((v, k) => v > thr ? detectPitch(y.subarray(k * hop, k * hop + N), s) : 0);
+  const vi = p.map((f, i) => f ? i : -1).filter(i => i >= 0);
+  if (vi.length < 8) return null;
+  const first = vi[0], last = vi[vi.length - 1], vp = vi.map(i => p[i]);
+  const med = [...vp].sort((a, b) => a - b)[vp.length >> 1];
+  const jit = []; for (let i = first + 1; i <= last; i++) if (p[i] && p[i - 1]) { const d = Math.abs(semi(p[i], p[i - 1])); if (d < 4) jit.push(d); }
+  let silent = 0; for (let i = first; i <= last; i++) if (rms[i] <= thr) silent++;
+  return {
+    pitchHz: Math.round(med),
+    pitchRangeSemitones: +std(vp.map(f => semi(f, med)).filter(v => Math.abs(v) < 12)).toFixed(2),
+    tremorSemitones: +mean(jit).toFixed(3),
+    pauseShare: +(silent / (last - first + 1)).toFixed(2),
+    secondsBeforeSpeaking: +(first * hop / s).toFixed(2),
+    durationSeconds: +(x.length / sr).toFixed(1)
+  };
+}
+
+/* ---------------- judging ---------------- */
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const CUES = [
+  { re: /\b(honestly|to be honest|i swear|believe me|trust me|i promise|swear to god|cross my heart)\b/g, pts: 13, why: "over-insisting" },
+  { re: /\b(literally|absolutely|totally|definitely|never ever|100 percent)\b/g, pts: 7, why: "too much certainty" },
+  { re: /\b(i think|maybe|kind of|sort of|i guess|probably|not really|i don't remember|i can't recall)\b/g, pts: 8, why: "hedging" },
+  { re: /\b(um+|uh+|er+|erm|hmm+)\b/g, pts: 6, why: "filler words" },
+  { re: /\b(didn't|did not|never|wasn't|was not|not me|no way)\b/g, pts: 5, why: "a flat denial" }
+];
+function hash(s) { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return Math.abs(h); }
+function localJudge(text, f) {
+  let s = 34; const why = [];
+  if (f) {
+    const v = [
+      [clamp01((f.tremorSemitones - .25) / .5) * 16, "a shaky pitch"],
+      [clamp01((f.pitchRangeSemitones - 2) / 3) * 10, "a jumpy voice"],
+      [clamp01((f.pauseShare - .2) / .3) * 10, "long pauses"],
+      [clamp01((f.secondsBeforeSpeaking - .6) / 1.5) * 10, "a slow start"]
+    ];
+    v.forEach(([p, w]) => { s += p; if (p > 5) why.push([p, w]); });
+  }
+  const t = " " + text.toLowerCase() + " ";
+  CUES.forEach(c => { const n = (t.match(c.re) || []).length; if (n) { const p = Math.min(2, n) * c.pts; s += p; why.push([p, c.why]); } });
+  s += (hash(text || "x") % 13) - 6;
+  s = Math.max(6, Math.min(96, Math.round(s)));
+  why.sort((a, b) => b[0] - a[0]);
+  const lie = s >= 50;
+  const top = why.slice(0, 2).map(w => w[1]);
+  const reason = lie
+    ? (top.length ? `Gave it away with ${top.join(" and ")}.` : "Something in that voice didn't sit right.")
+    : (top.length ? `Some ${top[0]}, but the story holds up.` : "Steady voice, clean story.");
+  return { verdict: lie ? "LIE" : "TRUTH", confidence: lie ? s : 100 - s + 2, reason, by: "machine" };
+}
+
+const SYSTEM = `You are the judging engine inside "Veritas VP-9", a novelty voice lie-detector game. A player said one statement about themselves into the microphone. You receive the speech-to-text transcript and acoustic measurements of their voice.
+Decide LIE or TRUTH like a sharp, theatrical polygraph examiner. Weigh verbal deception cues (over-insisting, hedging, distancing language, filler words, oddly specific or vague detail, implausibility, statements that sound like a dare) together with vocal stress (tremor above ~0.35 semitones, pitch range above ~3 semitones, pause share above ~0.3, slow start above ~1 s). Typical calm speech: tremor 0.15-0.3, range 1.5-2.5, pauses 0.1-0.25.
+Be decisive and varied: never sit on the fence, and do not default to TRUTH. Confidence is 55-98.
+Reason: one punchy sentence of at most 14 words, addressed to the player, citing the cue you used. No hedging about the science.`;
+async function aiJudge(text, f) {
+  if (!cfg.key) return null;
+  const ac = new AbortController(), to = setTimeout(() => ac.abort(), 30000);
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", signal: ac.signal,
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": cfg.key,
+        "anthropic-version": "2026-10-21",
+        "anthropic-beta": "server-side-fallback-2026-07-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-opus-5-5",
+        max_tokens: 4000,
+        fallbacks: "default",
+        output_config: {
+          effort: "low",
+          format: { type: "json_schema", schema: {
+            type: "object", additionalProperties: false, required: ["verdict", "confidence", "reason"],
+            properties: { verdict: { type: "string", enum: ["LIE", "TRUTH"] }, confidence: { type: "integer" }, reason: { type: "string" } }
+          } }
+        },
+        system: SYSTEM,
+        messages: [{ role: "user", content: JSON.stringify({ transcript: text || "(speech recognition heard nothing clear)", voice: f || "no voiced speech measured" }) }]
+      })
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(res.status === 401 ? "API key rejected" : e?.error?.message || "HTTP " + res.status); }
+    const msg = await res.json();
+    if (msg.stop_reason === "refusal") return null;
+    const block = msg.content.find(b => b.type === "text");
+    const out = JSON.parse(block.text);
+    out.confidence = Math.max(51, Math.min(99, Math.round(out.confidence)));
+    out.by = "claude";
+    return out;
+  } catch (e) { console.warn("AI judge failed:", e); lcd(e.name === "AbortError" ? "AI TIMEOUT" : "AI OFFLINE"); return null; }
+  finally { clearTimeout(to); }
+}
+
+/* ---------------- recording flow ---------------- */
+let state = "idle", stream, nodes, chunks = [], recog = null, transcript = "", t0 = 0, beat = 0;
+const lcd = t => $("#lcd").textContent = t;
+function setLamps() {
+  $("#lRec").classList.toggle("on", state === "rec");
+  $("#lAi").classList.toggle("on", !!cfg.key);
+}
+function startRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  transcript = ""; recog = null;
+  if (!SR) return;
+  try {
+    const r = new SR(); r.lang = navigator.language || "en-US"; r.continuous = true; r.interimResults = true;
+    let finals = "";
+    r.onresult = e => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        e.results[i].isFinal ? finals += t + " " : interim += t;
+      }
+      transcript = (finals + interim).trim();
+      if (state === "rec") $("#said").textContent = transcript ? `“${transcript}”` : "Listening…";
+    };
+    r.onerror = () => {};
+    r.start(); recog = r;
+  } catch { recog = null; }
+}
+function stopRecognition() {
+  return new Promise(res => {
+    if (!recog) return res();
+    const done = () => { clearTimeout(tm); res(); };
+    const tm = setTimeout(done, 1500);
+    recog.onend = done;
+    try { recog.stop(); } catch { done(); }
+  });
+}
+
+async function startRec() {
+  await audio();
+  if (!navigator.mediaDevices?.getUserMedia) { lcd("NO MIC"); $("#said").textContent = "This browser can't reach a microphone. Try Chrome, Edge or Safari."; return; }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } });
+  } catch {
+    lcd("MIC BLOCKED"); $("#said").innerHTML = "Microphone access is off.<em>Allow the mic in your browser's address bar, then press again.</em>"; return;
+  }
+  const src = ctx.createMediaStreamSource(stream), an = ctx.createAnalyser(), pr = ctx.createScriptProcessor(4096, 1, 1), mute = ctx.createGain();
+  an.fftSize = 2048; mute.gain.value = 0;
+  src.connect(an); src.connect(pr); pr.connect(mute); mute.connect(ctx.destination);
+  chunks = []; pr.onaudioprocess = e => chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+  nodes = { src, an, pr, mute, buf: new Float32Array(2048), prevPitch: 0 };
+  $("#stamp").className = "stamp";
+  $("#said").textContent = "Listening…";
+  startRecognition();
+  state = "rec"; t0 = performance.now();
+  $("#recBtn").classList.add("live"); $("#recBtn").setAttribute("aria-label", "Stop recording");
+  $("#hint").textContent = "PRESS TO STOP";
+  clack(); humOn(); buzz(40); setLamps();
+  needle.target = .12; needle.wild = 0;
+  beat = setInterval(() => buzz([25, 110, 25]), 950);
+}
+
+async function stopRec() {
+  if (state !== "rec") return;
+  state = "analyzing"; clearInterval(beat);
+  const { src, an, pr, mute } = nodes;
+  pr.onaudioprocess = null; [src, an, pr, mute].forEach(n => n.disconnect());
+  stream.getTracks().forEach(t => t.stop());
+  live.loud = live.pitch = live.trem = 0;
+  $("#recBtn").classList.remove("live"); $("#recBtn").disabled = true;
+  $("#hint").textContent = "ANALYZING"; setLamps(); clack();
+  lcd("ANALYZING"); needle.wild = 1; needle.target = .5; shake("rumble");
+
+  await stopRecognition();
+  const total = chunks.reduce((a, c) => a + c.length, 0), x = new Float32Array(total);
+  let o = 0; for (const c of chunks) { x.set(c, o); o += c.length; }
+  const f = analyze(x, ctx.sampleRate);
+  const text = transcript.trim();
+
+  if (!f && !text) { finishNoSpeech(); return; }
+  $("#said").textContent = text ? `“${text}”` : "(Couldn't make out the words, judging the voice.)";
+  const minWait = new Promise(r => setTimeout(r, 1800));
+  const [ai] = await Promise.all([aiJudge(text, f), minWait]);
+  verdict(ai || localJudge(text, f), text);
+}
+
+function finishNoSpeech() {
+  state = "idle"; needle.wild = 0; needle.target = .08;
+  $("#machine").classList.remove("rumble"); humOff();
+  $("#recBtn").disabled = false; $("#hint").textContent = "PRESS TO RECORD"; setLamps();
+  lcd("NO SPEECH"); $("#said").innerHTML = "The machine heard nothing.<em>Speak up, closer to the mic, for at least two seconds.</em>";
+}
+
+function verdict(v, text) {
+  const lie = v.verdict === "LIE";
+  needle.wild = 0;
+  needle.target = lie ? .5 + (v.confidence - 50) / 100 : .5 - (v.confidence - 50) / 100;
+  needle.vel += lie ? .12 : -.12;
+  $("#machine").classList.remove("rumble"); humOff();
+  setTimeout(() => {
+    $("#stampWord").textContent = lie ? "LIE" : "TRUTH";
+    $("#stampPct").textContent = `${v.confidence}% CERTAIN`;
+    $("#stamp").className = "stamp show" + (lie ? "" : " truth");
+    lcd(lie ? `DECEPTION ${v.confidence}%` : `TRUTHFUL ${v.confidence}%`);
+    const said = text ? `“${text}”` : "";
+    $("#said").innerHTML = ""; $("#said").append(said);
+    const em = document.createElement("em"); em.textContent = v.reason + (v.by === "claude" ? "  · judged by Claude" : ""); $("#said").append(em);
+    tone({ type: "sine", f: 90, f2: 40, dur: .25, vol: .5 }); clack();
+    if (lie) {
+      tone({ type: "sawtooth", f: 150, dur: .7, vol: .12, delay: .12 }); tone({ type: "square", f: 145, dur: .7, vol: .06, delay: .12 });
+      buzz([300, 80, 300, 80, 600]); shake();
+    } else {
+      tone({ type: "sine", f: 880, dur: .9, vol: .15, delay: .1 }); tone({ type: "sine", f: 1320, dur: .9, vol: .08, delay: .18 });
+      buzz([60]);
+    }
+    state = "idle"; $("#recBtn").disabled = false; $("#hint").textContent = "PRESS TO RECORD AGAIN"; setLamps();
+    $("#recBtn").setAttribute("aria-label", "Start recording");
+  }, 420);
+}
+
+$("#recBtn").onclick = () => state === "idle" ? startRec() : state === "rec" ? stopRec() : null;
+
+/* ---------------- main loop ---------------- */
+let lastTick = 0;
+function frame(now) {
+  if (state === "rec" && nodes) {
+    nodes.an.getFloatTimeDomainData(nodes.buf);
+    const r = rmsOf(nodes.buf), { y, s } = decimate(nodes.buf, ctx.sampleRate);
+    const p = r > .012 ? detectPitch(y, s) : 0;
+    live.loud = Math.min(1, r * 7);
+    live.trem = p && nodes.prevPitch ? Math.min(1, Math.abs(semi(p, nodes.prevPitch)) / 2) : live.trem * .8;
+    live.pitch = p; nodes.prevPitch = p;
+    needle.target = .1 + live.loud * .35 + live.trem * .25;
+    const sec = (now - t0) / 1000;
+    lcd(`REC ${sec.toFixed(1)}s ${p ? Math.round(p) + "HZ" : "---HZ"}`);
+    if (sec > 20) stopRec();
+    if (needle.pos > .3 && now - lastTick > 140) { clack(); lastTick = now; }
+  } else if (state === "analyzing") {
+    live.pitch = 160 + Math.sin(now / 70) * 120 * Math.random(); live.loud = Math.random() * .8; live.trem = Math.random();
+  }
+  stepNeedle(now);
+  stepStrip(state === "idle" ? 1 : 2.5);
+  requestAnimationFrame(frame);
+}
+
+/* ---------------- settings ---------------- */
+$("#gearBtn").onclick = () => { $("#keyIn").value = cfg.key; $("#soundIn").checked = cfg.sound; $("#vibeIn").checked = cfg.vibe; $("#settings").showModal(); };
+$("#settings").addEventListener("close", () => {
+  if ($("#settings").returnValue !== "save") return;
+  cfg.key = $("#keyIn").value.trim(); cfg.sound = $("#soundIn").checked; cfg.vibe = $("#vibeIn").checked;
+  store.set("key", cfg.key); store.set("sound", cfg.sound); store.set("vibe", cfg.vibe);
+  setLamps(); lcd(cfg.key ? "AI ONLINE" : "READY");
+});
+
+addEventListener("resize", sizeStrip);
+sizeStrip(); setLamps();
+if (cfg.key) lcd("READY · AI");
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
