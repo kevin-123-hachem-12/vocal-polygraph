@@ -19,6 +19,8 @@ const SCHEMA = {
   }
 };
 
+const CODE_RE = /^VP9-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+
 function cors(origin) {
   return {
     "Access-Control-Allow-Origin": ORIGINS.includes(origin) ? origin : ORIGINS[0],
@@ -31,14 +33,39 @@ function cors(origin) {
 const json = (body, status, headers) =>
   new Response(JSON.stringify(body), { status, headers: { ...headers, "content-type": "application/json" } });
 
-// Counts one use against a daily limit; returns false once the limit is reached.
-async function spend(kv, key, limit) {
-  const day = new Date().toISOString().slice(0, 10);
-  const k = `${day}:${key}`;
-  const used = parseInt((await kv.get(k)) || "0", 10);
-  if (used >= limit) return false;
-  await kv.put(k, String(used + 1), { expirationTtl: 60 * 60 * 48 });
-  return true;
+const today = () => new Date().toISOString().slice(0, 10);
+const freeKey = ip => `free:${today()}:${ip}`;
+const codeKey = code => `code:${code}`;
+
+async function balance(env, ip, code) {
+  const freeLimit = parseInt(env.FREE_DAILY || "3", 10);
+  const usedFree = parseInt((await env.LIMITS.get(freeKey(ip))) || "0", 10);
+  let credits = null;
+  if (code) {
+    const v = await env.LIMITS.get(codeKey(code));
+    credits = v === null ? null : parseInt(v, 10);
+  }
+  return { freeLeft: Math.max(0, freeLimit - usedFree), usedFree, credits };
+}
+
+async function judge(env, transcript, voice) {
+  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+  const msg = await client.messages.create({
+    model: "claude-haiku-5-5",
+    max_tokens: 2000,
+    output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },
+    system: SYSTEM,
+    messages: [{
+      role: "user",
+      content: JSON.stringify({ transcript: transcript || "(speech recognition heard nothing clear)", voice: voice || "no voiced speech measured" })
+    }]
+  });
+  if (msg.stop_reason === "refusal") return null;
+  const block = msg.content.find(b => b.type === "text");
+  if (!block) return null;
+  const out = JSON.parse(block.text);
+  out.confidence = Math.max(51, Math.min(99, Math.round(out.confidence)));
+  return out;
 }
 
 export default {
@@ -51,40 +78,43 @@ export default {
 
     let input;
     try { input = await req.json(); } catch { return json({ error: "Bad JSON" }, 400, h); }
+    const ip = req.headers.get("CF-Connecting-IP") || "unknown";
+    const code = typeof input.code === "string" ? input.code.trim().toUpperCase() : "";
+    if (code && !CODE_RE.test(code)) return json({ error: "bad_code" }, 400, h);
+
+    const path = new URL(req.url).pathname;
+    const bal = await balance(env, ip, code);
+    if (code && bal.credits === null) return json({ error: "bad_code" }, 404, h);
+
+    // How many Claude verdicts this visitor has left.
+    if (path === "/status") return json({ freeLeft: bal.freeLeft, credits: bal.credits }, 200, h);
+
     const transcript = String(input.transcript || "").slice(0, 600);
     const voice = input.voice && typeof input.voice === "object" ? input.voice : null;
     if (!transcript && !voice) return json({ error: "Nothing to judge" }, 400, h);
 
-    const ip = req.headers.get("CF-Connecting-IP") || "unknown";
-    const okIp = await spend(env.LIMITS, "ip:" + ip, parseInt(env.PER_PERSON_DAILY || "30", 10));
-    if (!okIp) return json({ error: "limit", scope: "person" }, 429, h);
-    const okAll = await spend(env.LIMITS, "all", parseInt(env.TOTAL_DAILY || "200", 10));
-    if (!okAll) return json({ error: "limit", scope: "total" }, 429, h);
+    // Paid credits are used first, then the free daily allowance.
+    const usePaid = code && bal.credits > 0;
+    if (!usePaid && bal.freeLeft <= 0) return json({ error: "limit", freeLeft: 0, credits: bal.credits }, 429, h);
 
-    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-    try {
-      const msg = await client.beta.messages.create({
-        model: "claude-opus-5-5",
-        max_tokens: 4000,
-        betas: ["server-side-fallback-2026-07-01"],
-        fallbacks: "default",
-        output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },
-        system: SYSTEM,
-        messages: [{
-          role: "user",
-          content: JSON.stringify({ transcript: transcript || "(speech recognition heard nothing clear)", voice: voice || "no voiced speech measured" })
-        }]
-      });
-      if (msg.stop_reason === "refusal") return json({ error: "refused" }, 502, h);
-      const block = msg.content.find(b => b.type === "text");
-      const out = JSON.parse(block.text);
-      out.confidence = Math.max(51, Math.min(99, Math.round(out.confidence)));
-      return json(out, 200, h);
-    } catch (e) {
+    let out;
+    try { out = await judge(env, transcript, voice); }
+    catch (e) {
       if (e instanceof Anthropic.RateLimitError) return json({ error: "busy" }, 503, h);
       if (e instanceof Anthropic.AuthenticationError) return json({ error: "server key rejected" }, 500, h);
       if (e instanceof Anthropic.APIError) return json({ error: "ai error " + e.status }, 502, h);
       return json({ error: "failed" }, 500, h);
     }
+    if (!out) return json({ error: "no verdict" }, 502, h);
+
+    // Charge only for a verdict that came back.
+    if (usePaid) {
+      await env.LIMITS.put(codeKey(code), String(bal.credits - 1));
+      out.credits = bal.credits - 1; out.freeLeft = bal.freeLeft;
+    } else {
+      await env.LIMITS.put(freeKey(ip), String(bal.usedFree + 1), { expirationTtl: 60 * 60 * 48 });
+      out.freeLeft = bal.freeLeft - 1; out.credits = bal.credits;
+    }
+    return json(out, 200, h);
   }
 };

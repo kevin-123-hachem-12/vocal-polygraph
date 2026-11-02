@@ -4,8 +4,7 @@ compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-TOTAL_DAILY = "200"      # Claude checks per day for everyone combined
-PER_PERSON_DAILY = "30"  # Claude checks per day for one visitor
+FREE_DAILY = "3"  # free Claude verdicts per visitor per day; packs add more
 
 # Storage for the daily counts.
 [[kv_namespaces]]
